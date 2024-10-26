@@ -3,7 +3,7 @@ name: Build and Test
 on:
   push:
     branches:
-      - main  # Adjust if you want to trigger on different branches
+      - db_manager  # Adjust if you want to trigger on different branches
   pull_request:
     branches:
       - main  # Adjust if you want to trigger on pull requests to different branches
