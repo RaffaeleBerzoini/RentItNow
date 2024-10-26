@@ -1,0 +1,59 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+AlignEscapedNewlines: Left
+AlignOperands: false
+AlignTrailingComments: true
+AllowAllConstructorInitializersOnNextLine : false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+ColumnLimit: 120
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+FixNamespaceComments: false
+IncludeCategories:
+  - Regex: '^<.*'
+    Priority: 1
+  - Regex: '^".*'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 3
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: Inner
+PenaltyReturnTypeOnItsOwnLine: 60000000
+PointerAlignment: Left
+SortIncludes: false
+TabWidth: 4
+AllowShortLambdasOnASingleLine: All
+MacroBlockBegin: "^REFLECTION_REGISTER_[^_]+_START"
+MacroBlockEnd: "^REFLECTION_REGISTER_[^_]+_END"
+...

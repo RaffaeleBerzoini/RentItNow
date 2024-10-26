@@ -3,10 +3,12 @@ add_library(DatabaseManager SHARED
     src/DatabaseManager.cpp
 )
 
+add_compile_definitions(DBMANAGER_EXPORT)
+
 target_include_directories(DatabaseManager PUBLIC
     include
 )
 
-target_link_libraries(DatabaseManager PRIVATE
+target_link_libraries(DatabaseManager PUBLIC
     sqlite3
 )
