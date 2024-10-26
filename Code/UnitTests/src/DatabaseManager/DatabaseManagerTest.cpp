@@ -60,7 +60,7 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
         sqlite3_stmt* stmt;
         const char* query = "SELECT name FROM sqlite_master WHERE type='table' AND name='Trips';";
         rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
-        REQUIRE(rc != SQLITE_OK);
+        REQUIRE(rc == SQLITE_OK);
         REQUIRE(sqlite3_step(stmt) == SQLITE_ROW);
         sqlite3_finalize(stmt);
     }

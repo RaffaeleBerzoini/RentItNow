@@ -3,10 +3,10 @@ name: Build and Test
 on:
   push:
     branches:
-      - db_manager  # Adjust if you want to trigger on different branches
+      - develop  # Adjust if you want to trigger on different branches
   pull_request:
     branches:
-      - main  # Adjust if you want to trigger on pull requests to different branches
+      - develop
 
 jobs:
   build:
@@ -25,5 +25,8 @@ jobs:
       - name: Build Release
         run: cmake --build build --config Release
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests Debug
         run: build/bin/Debug/UnitTests.exe
+
+      - name: Run Unit Tests Release
+        run: build/bin/Release/UnitTests.exe
