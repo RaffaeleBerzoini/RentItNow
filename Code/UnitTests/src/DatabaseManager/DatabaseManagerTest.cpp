@@ -19,6 +19,11 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
     // Instantiate DatabaseManager and set up the database
     DatabaseManager dbManager(testDBPath);
     dbManager.SetupDB();
+    
+    SECTION("DatabaseManager is initialized with errors")
+    {
+        REQUIRE_THROWS(DatabaseManager("test_db.db"));
+    }
 
     SECTION("Database file is created")
     {

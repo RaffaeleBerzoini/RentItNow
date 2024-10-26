@@ -3,10 +3,23 @@
 #include <filesystem>
 
 DatabaseManager::DatabaseManager(const std::string& dbFilePath)
-    : dbFilePath(dbFilePath) {
+    : dbFilePath(dbFilePath)
+{
+    std::filesystem::path dbDirectory{};
+    // Create a path object from the dbFilePath
+    std::filesystem::path dbPath(dbFilePath);
+
+    // Check if the directory path is empty
+    if (!dbPath.has_parent_path() || dbPath.parent_path().empty())
+    {
+        throw std::runtime_error("Error: Database file path must include a directory.");
+    }
+
+    // Set dbDirectory to the parent directory
+    dbDirectory = dbPath.parent_path();
+
     // Create the directory if it doesn't exist
-    std::filesystem::path dbDirectory = std::filesystem::path(dbFilePath).parent_path();
-    std::filesystem::create_directory(dbDirectory);
+    std::filesystem::create_directories(dbDirectory);
 }
 
 void DatabaseManager::SetupDB() {
