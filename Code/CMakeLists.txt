@@ -1,2 +1,2 @@
-add_subdirectory("SQLite3")
+add_subdirectory("ThirdParty")
 add_subdirectory("User")
