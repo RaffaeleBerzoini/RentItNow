@@ -1,0 +1,31 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main  # Adjust if you want to trigger on different branches
+  pull_request:
+    branches:
+      - main  # Adjust if you want to trigger on pull requests to different branches
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up CMake
+        uses: jwlawson/actions-cmake@v1
+        with:
+          cmake_args: '-G "Visual Studio 17 2022"'
+      
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - name: Run Unit Tests
+        run: build/bin/Debug/UnitTests.exe
