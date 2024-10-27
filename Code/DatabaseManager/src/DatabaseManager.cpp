@@ -2,6 +2,11 @@
 #include <iostream>
 #include <filesystem>
 
+namespace
+{
+std::string INITIAL_DATE = "2024-11-01"; // Initial date for the database when it's created
+}
+
 DatabaseManager::DatabaseManager(const std::string& dbFilePath)
     : dbFilePath(dbFilePath)
 {
@@ -443,6 +448,82 @@ std::vector<Interfaces::Car> DatabaseManager::GetAllCars()
     return cars;
 }
 
+int DatabaseManager::GetCarMilage(const std::string& licensePlate)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    /*
+    SELECT SUM(distance) AS mileage
+FROM Trips
+JOIN Cars ON Trips.car_id = Cars.id
+WHERE Cars.license_plate = 'ABC123';
+    */
+
+    const char* sql = R"(
+			SELECT SUM(distance) AS mileage
+			FROM Trips
+			JOIN Cars ON Trips.car_id = Cars.id
+			WHERE Cars.license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getCarMilage statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    int mileage = 0;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        mileage = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return mileage;
+}
+
+std::string DatabaseManager::GetCurrentDate()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT date
+			FROM CurrentDate
+			WHERE id = 1;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getCurrentDate statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    std::string date;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        date = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return date;
+}
+
 void DatabaseManager::CreateTables(sqlite3* db)
 {
     // TODO: CHECK (type IN ('ECO', 'MID-CLASS', 'DELUXE'))
@@ -538,4 +619,51 @@ void DatabaseManager::CreateTables(sqlite3* db)
         std::cerr << "Error creating CurrentDate table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
+
+    // Insert initial date if not exists
+    const char* insertDate = R"(
+		INSERT OR IGNORE INTO CurrentDate (date)
+		VALUES (?);
+	)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, insertDate, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare insertDate statement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, INITIAL_DATE.c_str(), -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        std::cerr << "Failed to insert initial date" << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+bool DatabaseManager::NextDay()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			UPDATE CurrentDate
+			SET date = date(date, '+1 day')
+			WHERE id = 1;
+		)";
+
+    char* errorMessage;
+    if (sqlite3_exec(db, sql, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Failed to update date: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_close(db);
+    return true;
 }

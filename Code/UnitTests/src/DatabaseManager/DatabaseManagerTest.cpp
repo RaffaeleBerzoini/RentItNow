@@ -17,7 +17,7 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
 
     // Instantiate DatabaseManager and set up the database
     DatabaseManager dbManager(testDBPath);
-    
+
     SECTION("DatabaseManager is initialized with errors")
     {
         REQUIRE_THROWS(DatabaseManager("test_db.db"));
@@ -376,5 +376,222 @@ TEST_CASE("Car management")
         // Remove car3
         REQUIRE(dbManager.RemoveCar("GHI789"));
         REQUIRE_FALSE(dbManager.GetCar("GHI789").has_value());
+    }
+}
+
+/*
+
+std::string DatabaseManager::GetCurrentDate()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+            SELECT date
+            FROM CurrentDate
+            WHERE id = 1;
+        )";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getCurrentDate statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    std::string date;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        date = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return date;
+}
+
+void DatabaseManager::CreateTables(sqlite3* db)
+{
+    // TODO: CHECK (type IN ('ECO', 'MID-CLASS', 'DELUXE'))
+    // TODO:  CHECK (status IN ('available', 'rented', 'under_service'))
+    const char* createCarsTable = R"(
+        CREATE TABLE IF NOT EXISTS Cars (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            car_type TEXT NOT NULL CHECK (car_type IN ('ECO', 'MID-CLASS', 'DELUXE')),
+            license_plate TEXT UNIQUE NOT NULL,
+            brand TEXT NOT NULL,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL CHECK (status IN ('available', 'rented', 'under_service'))
+        );
+    )";
+
+    const char* createUsersTable = R"(
+        CREATE TABLE IF NOT EXISTS Users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            surname TEXT NOT NULL,
+            address TEXT NOT NULL,
+            credit_card TEXT NOT NULL,
+            driving_license TEXT UNIQUE NOT NULL
+        );
+    )";
+
+    const char* createTripsTable = R"(
+        CREATE TABLE IF NOT EXISTS Trips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            car_id INTEGER NOT NULL,
+            start_circle TEXT NOT NULL CHECK (start_circle IN ('Inner Circle', 'Middle Circle', 'Outer Circle')),
+            destination_circle TEXT NOT NULL CHECK (destination_circle IN ('Inner Circle', 'Middle Circle', 'Outer
+Circle')), distance INTEGER NOT NULL, cost REAL NOT NULL, start_rental_date DATE NOT NULL, end_rental_date DATE NOT
+NULL, FOREIGN KEY (user_id) REFERENCES Users(id), FOREIGN KEY (car_id) REFERENCES Cars(id)
+        );
+    )";
+
+    const char* createServicesTable = R"(
+        CREATE TABLE IF NOT EXISTS Services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            car_id INTEGER NOT NULL,
+            service_date DATE NOT NULL,
+            distance_since_last_service INTEGER NOT NULL,
+            FOREIGN KEY (car_id) REFERENCES Cars(id)
+        );
+    )";
+
+    const char* createCurrentDateTable = R"(
+        CREATE TABLE IF NOT EXISTS CurrentDate (
+            id INTEGER PRIMARY KEY DEFAULT 1,
+            date DATE NOT NULL
+        );
+    )";
+
+    char* errorMessage;
+
+    // Create Cars table
+    if (sqlite3_exec(db, createCarsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Error creating Cars table: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+    }
+
+    // Create Users table
+    if (sqlite3_exec(db, createUsersTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Error creating Users table: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+    }
+
+    // Create Trips table
+    if (sqlite3_exec(db, createTripsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Error creating Trips table: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+    }
+
+    // Create Services table
+    if (sqlite3_exec(db, createServicesTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Error creating Services table: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+    }
+
+    // Create CurrentDate table
+    if (sqlite3_exec(db, createCurrentDateTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Error creating CurrentDate table: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+    }
+
+    // Insert initial date if not exists
+    const char* insertDate = R"(
+        INSERT OR IGNORE INTO CurrentDate (date)
+        VALUES (?);
+    )";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, insertDate, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare insertDate statement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, INITIAL_DATE.c_str(), -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        std::cerr << "Failed to insert initial date" << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+bool DatabaseManager::NextDay()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+            UPDATE CurrentDate
+            SET date = date(date, '+1 day')
+            WHERE id = 1;
+        )";
+
+    char* errorMessage;
+    if (sqlite3_exec(db, sql, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
+        std::cerr << "Failed to update date: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_close(db);
+    return true;
+}
+*/
+
+TEST_CASE("Date management")
+{
+    const std::string testDBPath = "database/test_db.db";
+
+    // Remove any existing test database file to ensure a clean start
+    if (std::filesystem::exists(testDBPath))
+    {
+        std::filesystem::remove(testDBPath);
+    }
+
+    // Instantiate DatabaseManager and set up the database
+    DatabaseManager dbManager(testDBPath);
+
+    SECTION("Get current date")
+    {
+        std::string currentDate = dbManager.GetCurrentDate();
+        REQUIRE(currentDate == "2024-11-01");
+    }
+
+    SECTION("Next day")
+    {
+        REQUIRE(dbManager.NextDay());
+        std::string currentDate = dbManager.GetCurrentDate();
+        REQUIRE(currentDate == "2024-11-02");
+    }
+
+    SECTION("Verify that date is not overwritten when recreating the db")
+    {
+        REQUIRE(dbManager.NextDay());
+        REQUIRE(dbManager.NextDay());
+        std::string currentDate = dbManager.GetCurrentDate();
+        REQUIRE(currentDate == "2024-11-03");
+
+        // Recreate the database
+        DatabaseManager dbManager2(testDBPath);
+
+        currentDate = dbManager2.GetCurrentDate();
+        REQUIRE(currentDate == "2024-11-03");
     }
 }

@@ -6,7 +6,7 @@ private:
     std::shared_ptr<DatabaseManager> dbManager;
 
     std::vector<Interfaces::Car> GetAvailableCars();
-    Interfaces::Car& GetBestCar(
+    std::optional<Interfaces::Car> GetBestCar(
         const std::vector<Interfaces::Car>& cars,
         const Interfaces::CarType& carType,
         const unsigned char& passengers);

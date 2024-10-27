@@ -32,6 +32,11 @@ public:
     DB_EXPORT std::optional<Interfaces::Car> GetCar(const std::string& licensePlate);
     DB_EXPORT std::vector<Interfaces::Car> GetAllCars();
 
+    DB_EXPORT int GetCarMilage(const std::string& licensePlate);
+
+    DB_EXPORT std::string GetCurrentDate();
+    DB_EXPORT bool NextDay();
+
 private:
     std::mutex dbMutex;
     std::string dbFilePath; // Database file path
