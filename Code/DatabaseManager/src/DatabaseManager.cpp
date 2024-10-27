@@ -780,3 +780,38 @@ bool DatabaseManager::NextDay()
     sqlite3_close(db);
     return true;
 }
+
+std::string DatabaseManager::GetNextDate(int numDays)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT date(date, '+' || ? || ' day')
+			FROM CurrentDate
+			WHERE id = 1;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getNextDate statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, numDays);
+
+    std::string date;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        date = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return date;
+}

@@ -39,6 +39,7 @@ public:
     DB_EXPORT bool AddTrip(const Interfaces::Trip& trip);
 
     DB_EXPORT std::string GetCurrentDate();
+    DB_EXPORT std::string GetNextDate(int numDays);
     DB_EXPORT bool NextDay();
 
 private:

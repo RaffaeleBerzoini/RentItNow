@@ -422,6 +422,15 @@ TEST_CASE("Date management")
         currentDate = dbManager2.GetCurrentDate();
         REQUIRE(currentDate == "2024-11-03");
     }
+
+    SECTION("Get next date")
+    {
+        std::string nextDate = dbManager.GetNextDate(3);
+        REQUIRE(nextDate == "2024-11-04");
+        
+        std::string currentDate = dbManager.GetCurrentDate();
+        REQUIRE(currentDate == "2024-11-01");
+    }
 }
 
 TEST_CASE("Trip and Milage")
