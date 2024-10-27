@@ -1,4 +1,5 @@
 add_subdirectory("ThirdParty")
+add_subdirectory("Common")
 add_subdirectory("User")
 add_subdirectory("DatabaseManager")
 add_subdirectory("UnitTests")
