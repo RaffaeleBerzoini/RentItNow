@@ -66,10 +66,10 @@ int main()
     // Modify car
     car.carSpecifics.type = Interfaces::CarType::ECO;
     car.status = Interfaces::CarStatus::RENTED;
-    API::Boss ::UpdateCar("DEF456", car);
+    API::Boss ::UpdateCar("GHI789", car);
 
     // Remove car
-    API::Boss ::RemoveCar("GHI789");
+    API::Boss ::RemoveCar("DEF456");
 
     cars = API::Boss::GetAllCars();
 
