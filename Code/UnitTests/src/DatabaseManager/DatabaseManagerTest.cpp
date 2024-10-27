@@ -18,7 +18,6 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
 
     // Instantiate DatabaseManager and set up the database
     DatabaseManager dbManager(testDBPath);
-    dbManager.SetupDB();
     
     SECTION("DatabaseManager is initialized with errors")
     {
@@ -90,4 +89,36 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
 
     // Remove test database file after tests
     std::filesystem::remove(testDBPath);
+}
+
+TEST_CASE("User management")
+{
+    const std::string testDBPath = "database/test_db.db";
+    std::cout << "Test database path: " << testDBPath << std::endl;
+
+    // Remove any existing test database file to ensure a clean start
+    if (std::filesystem::exists(testDBPath))
+    {
+        std::filesystem::remove(testDBPath);
+    }
+
+    // Instantiate DatabaseManager and set up the database
+    DatabaseManager dbManager(testDBPath);
+
+    SECTION("Add and get existing user")
+    {
+        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        REQUIRE(dbManager.AddUser(user1));
+
+        User user2 = dbManager.GetUser("AA0011").value();
+        REQUIRE(user1 == user2);
+
+        User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        REQUIRE(dbManager.AddUser(user3));
+
+        User user4 = dbManager.GetUser("BB0022").value();
+        REQUIRE(user3 == user4);
+
+        REQUIRE(user2 != user4);
+    }
 }

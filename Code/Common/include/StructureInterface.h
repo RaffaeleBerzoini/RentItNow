@@ -49,6 +49,17 @@ struct User
         this->creditCard = creditCard;
         this->drivingLicense = drivingLicense;
     }
+
+    bool operator==(const User& other) const
+    {
+        return name == other.name && surname == other.surname && address == other.address &&
+            creditCard == other.creditCard && drivingLicense == other.drivingLicense;
+    }
+
+    bool operator!=(const User& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 /*
@@ -99,17 +110,17 @@ struct CarSpecifics
         }
     }
 
-    unsigned char seats() const
+    unsigned char getSeats() const
     {
         return seats;
     }
 
-    unsigned char pricePerKm() const
+    unsigned char getPricePerKm() const
     {
         return pricePerKm;
     }
 
-    unsigned char speed() const
+    unsigned char getSpeed() const
     {
         return speed;
     }

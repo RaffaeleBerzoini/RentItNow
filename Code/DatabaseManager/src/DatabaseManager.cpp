@@ -20,6 +20,8 @@ DatabaseManager::DatabaseManager(const std::string& dbFilePath)
 
     // Create the directory if it doesn't exist
     std::filesystem::create_directories(dbDirectory);
+
+    SetupDB();
 }
 
 sqlite3* DatabaseManager::OpenDB()
@@ -41,6 +43,155 @@ void DatabaseManager::SetupDB() {
 
     // Close the database connection
     sqlite3_close(db);
+}
+
+bool DatabaseManager::AddUser(const User& user)
+{
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+            INSERT INTO Users (name, surname, address, credit_card, driving_license)
+            VALUES (?, ?, ?, ?, ?);
+        )";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare addUser statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, user.name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, user.surname.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, user.address.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, user.creditCard.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, user.drivingLicense.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to add user: " << sqlite3_errmsg(db) << std::endl;
+    }
+    return success;
+
+    sqlite3_close(db);
+}
+
+// Update a user in the database
+bool DatabaseManager::UpdateUser(const std::string& driving_license, const User& updatedUser)
+{
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+            UPDATE Users SET
+                name = ?,
+                surname = ?,
+                address = ?,
+                credit_card = ?
+            WHERE driving_license = ?;
+        )";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare updateUser statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, updatedUser.name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, updatedUser.surname.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, updatedUser.address.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, updatedUser.creditCard.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, driving_license.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to update user: " << sqlite3_errmsg(db) << std::endl;
+    }
+    return success;
+
+    sqlite3_close(db);
+}
+
+// Remove a user from the database
+bool DatabaseManager::RemoveUser(const std::string& driving_license)
+{
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+            DELETE FROM Users WHERE driving_license = ?;
+        )";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare removeUser statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, driving_license.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to remove user: " << sqlite3_errmsg(db) << std::endl;
+    }
+    return success;
+
+    sqlite3_close(db);
+}
+
+std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
+{
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT name, surname, address, credit_card, driving_license
+			FROM Users
+			WHERE driving_license = ?;
+		)";
+
+       sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getUser statement: " << sqlite3_errmsg(db) << std::endl;
+        return std::nullopt;
+    }
+
+    sqlite3_bind_text(stmt, 1, drivingLicense.c_str(), -1, SQLITE_STATIC);
+
+    std::string name;
+    std::string surname;
+    std::string address;
+    std::string creditCard;
+    
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        surname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        address = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+        creditCard = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+    }
+    else
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return std::nullopt;
+    }
+
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+
+    return User(name, surname, address, creditCard, drivingLicense);
+
 }
 
 void DatabaseManager::CreateTables(sqlite3* db) {

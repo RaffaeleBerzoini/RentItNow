@@ -11,4 +11,5 @@ target_include_directories(DatabaseManager PUBLIC
 
 target_link_libraries(DatabaseManager PUBLIC
     sqlite3
+    Common
 )
