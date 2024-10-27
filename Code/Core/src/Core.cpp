@@ -9,6 +9,7 @@ Core::Core()
 {
     databaseManager = std::make_shared<DatabaseManager>(DATABASE_PATH);
     userManager = std::make_unique<UserManager>(UserManager(databaseManager));
+    carManager = std::make_unique<CarManager>(CarManager(databaseManager));
 }
 
 Core* Core::GetInstance()
@@ -23,4 +24,9 @@ Core* Core::GetInstance()
 UserManager& Core::GetUserManager()
 {
     return *userManager;
+}
+
+CarManager& Core::GetCarManager()
+{
+    return *carManager;
 }

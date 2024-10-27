@@ -30,3 +30,28 @@ std::vector<Interfaces::User> Common::GetAllUsers()
 {
     return CorePtr()->GetUserManager().GetAllUsers();
 }
+
+bool Boss::AddCar(const Interfaces::Car& car)
+{
+    return CorePtr()->GetCarManager().AddCar(car);
+}
+
+bool Boss::UpdateCar(const std::string& licensePlate, const Interfaces::Car& car)
+{
+    return CorePtr()->GetCarManager().UpdateCar(licensePlate, car);
+}
+
+bool Boss::RemoveCar(const std::string& licensePlate)
+{
+    return CorePtr()->GetCarManager().RemoveCar(licensePlate);
+}
+
+std::optional<Interfaces::Car> Boss::GetCar(const std::string& licensePlate)
+{
+    return CorePtr()->GetCarManager().GetCar(licensePlate);
+}
+
+std::vector<Interfaces::Car> Boss::GetAllCars()
+{
+    return CorePtr()->GetCarManager().GetAllCars();
+}

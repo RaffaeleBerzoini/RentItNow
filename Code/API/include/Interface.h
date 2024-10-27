@@ -19,7 +19,11 @@ namespace API
 	}
 	namespace Boss
 	{
-
+        API_INTERFACE_EXPORT bool AddCar(const Interfaces::Car& car);
+        API_INTERFACE_EXPORT bool UpdateCar(const std::string& licensePlate, const Interfaces::Car& car);
+        API_INTERFACE_EXPORT bool RemoveCar(const std::string& licensePlate);
+        API_INTERFACE_EXPORT std::optional<Interfaces::Car> GetCar(const std::string& licensePlate);
+        API_INTERFACE_EXPORT std::vector<Interfaces::Car> GetAllCars();
 	}
 
 	namespace User
