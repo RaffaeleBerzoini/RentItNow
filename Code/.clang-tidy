@@ -1,0 +1,4 @@
+Checks: '-*,readability-*,modernize-*,bugprone-*,cppcoreguidelines-*,performance-*'
+CheckOptions:
+  - key:    cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:  true

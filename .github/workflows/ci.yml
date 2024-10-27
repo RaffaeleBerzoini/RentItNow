@@ -1,0 +1,87 @@
+name: Build, Test and Release
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure
+        run: cmake -S . -B build -G "Visual Studio 17 2022"
+
+      - name: Build Debug
+        run: cmake --build build --config Debug
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Run Unit Tests Debug
+        run: build/bin/Debug/UnitTests.exe
+
+      - name: Run Unit Tests Release
+        run: build/bin/Release/UnitTests.exe
+        
+      # Upload artifacts for use in release job
+      - name: Upload Debug Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-binaries
+          path: build/bin/Debug
+          
+      - name: Upload Release Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries
+          path: build/bin/Release
+
+  create_release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      # Download the artifacts from build job
+      - name: Download Debug Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-binaries
+          path: debug-binaries
+          
+      - name: Download Release Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: release-binaries
+          path: release-binaries
+          
+      # Create zip files for both configurations
+      - name: Create ZIP files
+        run: |
+          Compress-Archive -Path debug-binaries/* -DestinationPath debug-binaries.zip
+          Compress-Archive -Path release-binaries/* -DestinationPath release-binaries.zip
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = "v1.0.$(git rev-list --count HEAD)"
+          gh release create $version `
+            --title "Release $version" `
+            --notes "Automated release from develop branch" `
+            --target develop `
+            debug-binaries.zip `
+            release-binaries.zip
