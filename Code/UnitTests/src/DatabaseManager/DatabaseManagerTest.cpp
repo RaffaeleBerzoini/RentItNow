@@ -8,7 +8,6 @@
 TEST_CASE("DatabaseManager initializes the database file and tables", "[DatabaseManager]")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
@@ -113,7 +112,6 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
 TEST_CASE("User management")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
@@ -222,7 +220,6 @@ TEST_CASE("User management")
 TEST_CASE("Car management")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
