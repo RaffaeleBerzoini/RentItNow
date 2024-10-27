@@ -4,6 +4,9 @@
 #    include <string>
 #    include <stdexcept>
 
+namespace Interfaces
+{
+
 enum class CarType
 {
     ECO,
@@ -342,7 +345,6 @@ struct Trip
     {}
 
 private:
-
     std::string circleTypeToString(CircleType circle) const
     {
         switch (circle)
@@ -369,5 +371,6 @@ private:
     }
 };
 
+}
 
 #endif

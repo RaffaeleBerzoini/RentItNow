@@ -5,15 +5,11 @@ add_library (API SHARED
 
 add_compile_definitions(INTERFACE_EXPORT)
 
-target_include_directories (API PRIVATE
-    src
-)
-
 target_include_directories (API PUBLIC
     include
 )
 
 target_link_libraries (API PUBLIC
-    Common
+    Core
 )
 

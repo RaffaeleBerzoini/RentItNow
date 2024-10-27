@@ -8,7 +8,6 @@
 TEST_CASE("DatabaseManager initializes the database file and tables", "[DatabaseManager]")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
@@ -113,7 +112,6 @@ TEST_CASE("DatabaseManager initializes the database file and tables", "[Database
 TEST_CASE("User management")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
@@ -126,27 +124,29 @@ TEST_CASE("User management")
 
     SECTION("Add and get existing user")
     {
-        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(dbManager.AddUser(user1));
 
-        User user2 = dbManager.GetUser("AA0011").value();
+        Interfaces::User user2 = dbManager.GetUser("AA0011").value();
         REQUIRE(user1 == user2);
 
-        User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        Interfaces::User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
         REQUIRE(dbManager.AddUser(user3));
 
-        User user4 = dbManager.GetUser("BB0022").value();
+        Interfaces::User user4 = dbManager.GetUser("BB0022").value();
         REQUIRE(user3 == user4);
 
         REQUIRE(user2 != user4);
+
+        REQUIRE_FALSE(dbManager.AddUser(user1));
     }
 
     SECTION("Add and remove user")
     {
-        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(dbManager.AddUser(user1));
 
-        User user2 = dbManager.GetUser("AA0011").value();
+        Interfaces::User user2 = dbManager.GetUser("AA0011").value();
         REQUIRE(user1 == user2);
 
         REQUIRE(dbManager.RemoveUser("AA0011"));
@@ -155,24 +155,41 @@ TEST_CASE("User management")
 
     SECTION("Add and update user")
     {
-        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(dbManager.AddUser(user1));
 
-        User user2 = dbManager.GetUser("AA0011").value();
+        Interfaces::User user2 = dbManager.GetUser("AA0011").value();
         REQUIRE(user1 == user2);
 
-        User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        Interfaces::User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
         REQUIRE(dbManager.UpdateUser("AA0011", user3));
 
         // The driving license should not be updated
         REQUIRE_FALSE(dbManager.GetUser("BB0022").has_value());
 
-        User user4 = dbManager.GetUser("AA0011").value();
+        Interfaces::User user4 = dbManager.GetUser("AA0011").value();
         REQUIRE(user3.address == user4.address);
         REQUIRE(user3.creditCard == user4.creditCard);
         REQUIRE(user3.name == user4.name);
         REQUIRE(user3.surname == user4.surname);
         REQUIRE_FALSE(user3.drivingLicense == user4.drivingLicense);
+    }
+
+    SECTION("Get all users")
+    {
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user2("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        Interfaces::User user3("Jim", "Beam", "789 Pine St", "5555 4444 3333 2222", "CC0033");
+
+        REQUIRE(dbManager.AddUser(user1));
+        REQUIRE(dbManager.AddUser(user2));
+        REQUIRE(dbManager.AddUser(user3));
+
+        std::vector<Interfaces::User> users = dbManager.GetAllUsers();
+        REQUIRE(users.size() == 3);
+        REQUIRE(users[0] == user1);
+        REQUIRE(users[1] == user2);
+        REQUIRE(users[2] == user3);
     }
 
     SECTION("Multiple operations")
@@ -181,13 +198,16 @@ TEST_CASE("User management")
         REQUIRE_FALSE(dbManager.GetUser("NON_EXISTENT").has_value());
 
         // Add some users
-        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
-        User user2("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
-        User user3("Jim", "Beam", "789 Pine St", "5555 4444 3333 2222", "CC0033");
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user2("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        Interfaces::User user3("Jim", "Beam", "789 Pine St", "5555 4444 3333 2222", "CC0033");
 
         REQUIRE(dbManager.AddUser(user1));
         REQUIRE(dbManager.AddUser(user2));
         REQUIRE(dbManager.AddUser(user3));
+
+        // Add duplicate user
+        REQUIRE_FALSE(dbManager.AddUser(user1));
 
         // Verify that users can be retrieved correctly
         REQUIRE(dbManager.GetUser("AA0011").has_value());
@@ -199,11 +219,11 @@ TEST_CASE("User management")
         REQUIRE_FALSE(dbManager.GetUser("BB0022").has_value());
 
         // Update user1's information and verify
-        User updatedUser1("John", "Doe", "321 New St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User updatedUser1("John", "Doe", "321 New St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(dbManager.UpdateUser("AA0011", updatedUser1));
 
         // Check if the updated information is correct
-        User fetchedUser1 = dbManager.GetUser("AA0011").value();
+        Interfaces::User fetchedUser1 = dbManager.GetUser("AA0011").value();
         REQUIRE(updatedUser1.address == fetchedUser1.address);
         REQUIRE(updatedUser1.creditCard == fetchedUser1.creditCard);
         REQUIRE(updatedUser1.name == fetchedUser1.name);
@@ -222,7 +242,6 @@ TEST_CASE("User management")
 TEST_CASE("Car management")
 {
     const std::string testDBPath = "database/test_db.db";
-    std::cout << "Test database path: " << testDBPath << std::endl;
 
     // Remove any existing test database file to ensure a clean start
     if (std::filesystem::exists(testDBPath))
@@ -235,35 +254,37 @@ TEST_CASE("Car management")
 
     SECTION("Add and get existing car")
     {
-        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(dbManager.AddCar(car1));
 
-        Car car2 = dbManager.GetCar("ABC123").value();
+        Interfaces::Car car2 = dbManager.GetCar("ABC123").value();
         REQUIRE(car1 == car2);
 
-        Car car3(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
+        Interfaces::Car car3(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
         REQUIRE(dbManager.AddCar(car3));
 
-        Car car4 = dbManager.GetCar("DEF456").value();
+        Interfaces::Car car4 = dbManager.GetCar("DEF456").value();
         REQUIRE(car3 == car4);
 
         REQUIRE(car2 != car4);
 
-        Car car5(CarType::DELUXE, "GHI789", "BMW", "M5", CarStatus::UNDER_SERVICE);
+        Interfaces::Car car5(Interfaces::CarType::DELUXE, "GHI789", "BMW", "M5", Interfaces::CarStatus::UNDER_SERVICE);
         REQUIRE(dbManager.AddCar(car5));
 
-        Car car6 = dbManager.GetCar("GHI789").value();
+        Interfaces::Car car6 = dbManager.GetCar("GHI789").value();
         REQUIRE(car5 == car6);
 
         REQUIRE(car4 != car6);
+
+        REQUIRE_FALSE(dbManager.AddCar(car1));
     }
 
     SECTION("Add and remove car")
     {
-        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(dbManager.AddCar(car1));
 
-        Car car2 = dbManager.GetCar("ABC123").value();
+        Interfaces::Car car2 = dbManager.GetCar("ABC123").value();
         REQUIRE(car1 == car2);
 
         REQUIRE(dbManager.RemoveCar("ABC123"));
@@ -272,19 +293,19 @@ TEST_CASE("Car management")
 
     SECTION("Add and update car")
     {
-        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(dbManager.AddCar(car1));
 
-        Car car2 = dbManager.GetCar("ABC123").value();
+        Interfaces::Car car2 = dbManager.GetCar("ABC123").value();
         REQUIRE(car1 == car2);
 
-        Car car3(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
+        Interfaces::Car car3(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
         REQUIRE(dbManager.UpdateCar("ABC123", car3));
 
         // The license plate should not be updated
         REQUIRE_FALSE(dbManager.GetCar("DEF456").has_value());
 
-        Car car4 = dbManager.GetCar("ABC123").value();
+        Interfaces::Car car4 = dbManager.GetCar("ABC123").value();
         REQUIRE(car3.brand == car4.brand);
         REQUIRE(car3.name == car4.name);
         REQUIRE(car3.carSpecifics.type == car4.carSpecifics.type);
@@ -293,19 +314,39 @@ TEST_CASE("Car management")
         REQUIRE(car3.status == car4.status);
     }
 
+    SECTION("Get all cars")
+    {
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
+        Interfaces::Car car2(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
+        Interfaces::Car car3(Interfaces::CarType::DELUXE, "GHI789", "BMW", "M5", Interfaces::CarStatus::UNDER_SERVICE);
+
+        REQUIRE(dbManager.AddCar(car1));
+        REQUIRE(dbManager.AddCar(car2));
+        REQUIRE(dbManager.AddCar(car3));
+
+        std::vector<Interfaces::Car> cars = dbManager.GetAllCars();
+        REQUIRE(cars.size() == 3);
+        REQUIRE(cars[0] == car1);
+        REQUIRE(cars[1] == car2);
+        REQUIRE(cars[2] == car3);
+    }
+
     SECTION("Multiple operations")
     {
         // Attempt to get a non-existent car
         REQUIRE_FALSE(dbManager.GetCar("NON_EXISTENT").has_value());
 
         // Add some cars
-        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
-        Car car2(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
-        Car car3(CarType::DELUXE, "GHI789", "BMW", "M5", CarStatus::UNDER_SERVICE);
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
+        Interfaces::Car car2(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
+        Interfaces::Car car3(Interfaces::CarType::DELUXE, "GHI789", "BMW", "M5", Interfaces::CarStatus::UNDER_SERVICE);
 
         REQUIRE(dbManager.AddCar(car1));
         REQUIRE(dbManager.AddCar(car2));
         REQUIRE(dbManager.AddCar(car3));
+
+        // Add duplicate car
+        REQUIRE_FALSE(dbManager.AddCar(car1));
 
         // Verify that cars can be retrieved correctly
         REQUIRE(dbManager.GetCar("ABC123").has_value());
@@ -317,11 +358,12 @@ TEST_CASE("Car management")
         REQUIRE_FALSE(dbManager.GetCar("DEF456").has_value());
 
         // Update car1's information and verify
-        Car updatedCar1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::RENTED);
+        Interfaces::Car updatedCar1(
+            Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::RENTED);
         REQUIRE(dbManager.UpdateCar("ABC123", updatedCar1));
 
         // Check if the updated information is correct
-        Car fetchedCar1 = dbManager.GetCar("ABC123").value();
+        Interfaces::Car fetchedCar1 = dbManager.GetCar("ABC123").value();
         REQUIRE(updatedCar1.brand == fetchedCar1.brand);
         REQUIRE(updatedCar1.name == fetchedCar1.name);
         REQUIRE(updatedCar1.carSpecifics.type == fetchedCar1.carSpecifics.type);

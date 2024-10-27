@@ -3,8 +3,6 @@ add_library(UserManager STATIC
     src/UserManager.cpp
 )
 
-add_compile_definitions(DBMANAGER_EXPORT)
-
 target_include_directories(UserManager PUBLIC
     include
 )
