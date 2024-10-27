@@ -48,7 +48,7 @@ void DatabaseManager::SetupDB()
     sqlite3_close(db);
 }
 
-bool DatabaseManager::AddUser(const User& user)
+bool DatabaseManager::AddUser(const Interfaces::User& user)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -85,7 +85,7 @@ bool DatabaseManager::AddUser(const User& user)
 }
 
 // Update a user in the database
-bool DatabaseManager::UpdateUser(const std::string& driving_license, const User& updatedUser)
+bool DatabaseManager::UpdateUser(const std::string& driving_license, const Interfaces::User& updatedUser)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -157,7 +157,7 @@ bool DatabaseManager::RemoveUser(const std::string& driving_license)
     return success;
 }
 
-std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
+std::optional<Interfaces::User> DatabaseManager::GetUser(const std::string& drivingLicense)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -202,10 +202,10 @@ std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
 
     sqlite3_close(db);
 
-    return User(name, surname, address, creditCard, drivingLicense);
+    return Interfaces::User(name, surname, address, creditCard, drivingLicense);
 }
 
-bool DatabaseManager::AddCar(const Car& car)
+bool DatabaseManager::AddCar(const Interfaces::Car& car)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -246,7 +246,7 @@ bool DatabaseManager::AddCar(const Car& car)
     return success;
 }
 
-bool DatabaseManager::UpdateCar(const std::string& licensePlate, const Car& updatedCar)
+bool DatabaseManager::UpdateCar(const std::string& licensePlate, const Interfaces::Car& updatedCar)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -321,7 +321,7 @@ bool DatabaseManager::RemoveCar(const std::string& licensePlate)
     return success;
 }
 
-std::optional<Car> DatabaseManager::GetCar(const std::string& licensePlate)
+std::optional<Interfaces::Car> DatabaseManager::GetCar(const std::string& licensePlate)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -366,7 +366,7 @@ std::optional<Car> DatabaseManager::GetCar(const std::string& licensePlate)
 
     sqlite3_close(db);
 
-    return Car(type, licensePlate, brand, name, status);
+    return Interfaces::Car(type, licensePlate, brand, name, status);
 }
 
 void DatabaseManager::CreateTables(sqlite3* db)

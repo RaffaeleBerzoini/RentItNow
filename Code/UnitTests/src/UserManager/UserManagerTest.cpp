@@ -19,7 +19,7 @@ TEST_CASE("UserManagerTest")
 
     SECTION("AddUser")
     {
-        User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.AddUser(user));
 
         auto userFromDB = dbManager->GetUser("AA0011");
@@ -29,10 +29,10 @@ TEST_CASE("UserManagerTest")
 
     SECTION("UpdateUser")
     {
-        User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.AddUser(user));
 
-        User updatedUser("Jane", "Smith", "456 Elm St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User updatedUser("Jane", "Smith", "456 Elm St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.UpdateUser("AA0011", updatedUser));
 
         auto userFromDB = dbManager->GetUser("AA0011");
@@ -42,7 +42,7 @@ TEST_CASE("UserManagerTest")
 
     SECTION("RemoveUser")
     {
-        User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.AddUser(user));
 
         REQUIRE(userManager.RemoveUser("AA0011"));
@@ -53,7 +53,7 @@ TEST_CASE("UserManagerTest")
 
     SECTION("GetUser")
     {
-        User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.AddUser(user));
 
         auto userFromDB = userManager.GetUser("AA0011");
@@ -64,8 +64,8 @@ TEST_CASE("UserManagerTest")
         SECTION("Multiple operations")
     {
         // Adding initial users
-        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
-        User user2("Alice", "Johnson", "456 Oak St", "2345 6789 0123 4567", "BB0022");
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user2("Alice", "Johnson", "456 Oak St", "2345 6789 0123 4567", "BB0022");
         REQUIRE(userManager.AddUser(user1));
         REQUIRE(userManager.AddUser(user2));
 
@@ -79,7 +79,7 @@ TEST_CASE("UserManagerTest")
         REQUIRE(userFromDB2.value() == user2);
 
         // Updating user1
-        User updatedUser1("John", "Smith", "789 Maple St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User updatedUser1("John", "Smith", "789 Maple St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(userManager.UpdateUser("AA0011", updatedUser1));
 
         // Verifying update
@@ -95,7 +95,7 @@ TEST_CASE("UserManagerTest")
         REQUIRE(!userFromDB2.has_value());
 
         // Adding a new user with the same ID as a removed user
-        User user3("Bob", "Brown", "321 Cedar St", "3456 7890 1234 5678", "BB0022");
+        Interfaces::User user3("Bob", "Brown", "321 Cedar St", "3456 7890 1234 5678", "BB0022");
         REQUIRE(userManager.AddUser(user3));
 
         // Verifying the new user with the reused ID

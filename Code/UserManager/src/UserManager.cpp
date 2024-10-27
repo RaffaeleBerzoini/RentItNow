@@ -1,7 +1,7 @@
 #include <iostream>
 #include "UserManager.h"
 
-bool UserManager::AddUser(const User& user)
+bool UserManager::AddUser(const Interfaces::User& user)
 {
     if (dbManager->AddUser(user))
     {
@@ -15,7 +15,7 @@ bool UserManager::AddUser(const User& user)
     }
 }
 
-bool UserManager::UpdateUser(const std::string& driving_license, const User& user)
+bool UserManager::UpdateUser(const std::string& driving_license, const Interfaces::User& user)
 {
     if (dbManager->UpdateUser(driving_license, user))
     {
@@ -43,7 +43,7 @@ bool UserManager::RemoveUser(const std::string& drivingLicense)
     }
 }
 
-std::optional<User> UserManager::GetUser(const std::string& drivingLicense)
+std::optional<Interfaces::User> UserManager::GetUser(const std::string& drivingLicense)
 {
     return dbManager->GetUser(drivingLicense);
 }

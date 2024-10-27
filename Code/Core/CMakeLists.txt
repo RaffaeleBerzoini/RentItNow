@@ -9,6 +9,8 @@ target_include_directories (Core PUBLIC
 
 target_link_libraries (Core PUBLIC
     Common
+    UserManager
+    DatabaseManager
 )
 
 
