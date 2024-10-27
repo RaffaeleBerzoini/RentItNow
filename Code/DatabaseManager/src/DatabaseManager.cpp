@@ -5,6 +5,8 @@
 DatabaseManager::DatabaseManager(const std::string& dbFilePath)
     : dbFilePath(dbFilePath)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
+
     std::filesystem::path dbDirectory{};
     // Create a path object from the dbFilePath
     std::filesystem::path dbPath(dbFilePath);
@@ -35,7 +37,8 @@ sqlite3* DatabaseManager::OpenDB()
     return db;
 }
 
-void DatabaseManager::SetupDB() {
+void DatabaseManager::SetupDB()
+{
     // Open the database
     sqlite3* db = OpenDB();
 
@@ -47,6 +50,8 @@ void DatabaseManager::SetupDB() {
 
 bool DatabaseManager::AddUser(const User& user)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
+
     sqlite3* db = OpenDB();
 
     const char* sql = R"(
@@ -74,14 +79,16 @@ bool DatabaseManager::AddUser(const User& user)
     {
         std::cerr << "Failed to add user: " << sqlite3_errmsg(db) << std::endl;
     }
-    return success;
 
     sqlite3_close(db);
+    return success;
 }
 
 // Update a user in the database
 bool DatabaseManager::UpdateUser(const std::string& driving_license, const User& updatedUser)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
+
     sqlite3* db = OpenDB();
 
     const char* sql = R"(
@@ -97,6 +104,7 @@ bool DatabaseManager::UpdateUser(const std::string& driving_license, const User&
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
         std::cerr << "Failed to prepare updateUser statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
         return false;
     }
 
@@ -113,14 +121,15 @@ bool DatabaseManager::UpdateUser(const std::string& driving_license, const User&
     {
         std::cerr << "Failed to update user: " << sqlite3_errmsg(db) << std::endl;
     }
-    return success;
-
     sqlite3_close(db);
+    return success;
 }
 
 // Remove a user from the database
 bool DatabaseManager::RemoveUser(const std::string& driving_license)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
+
     sqlite3* db = OpenDB();
 
     const char* sql = R"(
@@ -131,6 +140,7 @@ bool DatabaseManager::RemoveUser(const std::string& driving_license)
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
         std::cerr << "Failed to prepare removeUser statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
         return false;
     }
 
@@ -143,13 +153,14 @@ bool DatabaseManager::RemoveUser(const std::string& driving_license)
     {
         std::cerr << "Failed to remove user: " << sqlite3_errmsg(db) << std::endl;
     }
-    return success;
-
     sqlite3_close(db);
+    return success;
 }
 
 std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
+
     sqlite3* db = OpenDB();
 
     const char* sql = R"(
@@ -158,10 +169,11 @@ std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
 			WHERE driving_license = ?;
 		)";
 
-       sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
         std::cerr << "Failed to prepare getUser statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
         return std::nullopt;
     }
 
@@ -171,7 +183,7 @@ std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
     std::string surname;
     std::string address;
     std::string creditCard;
-    
+
     if (sqlite3_step(stmt) == SQLITE_ROW)
     {
         name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
@@ -191,10 +203,10 @@ std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
     sqlite3_close(db);
 
     return User(name, surname, address, creditCard, drivingLicense);
-
 }
 
-void DatabaseManager::CreateTables(sqlite3* db) {
+void DatabaseManager::CreateTables(sqlite3* db)
+{
     const char* createCarsTable = R"(
         CREATE TABLE IF NOT EXISTS Cars (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -253,33 +265,37 @@ void DatabaseManager::CreateTables(sqlite3* db) {
     char* errorMessage;
 
     // Create Cars table
-    if (sqlite3_exec(db, createCarsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+    if (sqlite3_exec(db, createCarsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
         std::cerr << "Error creating Cars table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
 
     // Create Users table
-    if (sqlite3_exec(db, createUsersTable, nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+    if (sqlite3_exec(db, createUsersTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
         std::cerr << "Error creating Users table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
 
     // Create Trips table
-    if (sqlite3_exec(db, createTripsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+    if (sqlite3_exec(db, createTripsTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
         std::cerr << "Error creating Trips table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
 
     // Create Services table
-    if (sqlite3_exec(db, createServicesTable, nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+    if (sqlite3_exec(db, createServicesTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
         std::cerr << "Error creating Services table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
 
     // Create CurrentDate table
-    if (sqlite3_exec(db, createCurrentDateTable, nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+    if (sqlite3_exec(db, createCurrentDateTable, nullptr, nullptr, &errorMessage) != SQLITE_OK)
+    {
         std::cerr << "Error creating CurrentDate table: " << errorMessage << std::endl;
         sqlite3_free(errorMessage);
     }
 }
-

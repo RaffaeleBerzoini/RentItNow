@@ -5,6 +5,7 @@
 #include <string>
 #include "StructureInterface.h"
 #include <optional>
+#include <mutex>
 
 #ifdef DBMANAGER_EXPORT
 #    define DB_EXPORT __declspec(dllexport)
@@ -24,6 +25,7 @@ public:
     DB_EXPORT std::optional<User> GetUser(const std::string& drivingLicense);
 
 private:
+    std::mutex dbMutex;
     std::string dbFilePath; // Database file path
     // Set-up the Database if it does not exist
     void SetupDB();
