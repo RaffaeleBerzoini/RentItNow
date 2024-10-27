@@ -89,7 +89,7 @@ bool BookingManager::BookCar(
 
     if (user_id == -1 || car_id == -1)
     {
-        std::cout << "User or car not found" << std::endl;
+        std::cout << "User or car not existent" << std::endl;
         return false;
     }
 

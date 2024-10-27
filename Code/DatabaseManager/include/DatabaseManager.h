@@ -49,6 +49,8 @@ private:
     void SetupDB();
     void CreateTables(sqlite3* db);
     sqlite3* OpenDB();
+
+    bool UpdateDatabase();
 };
 
 #endif // DATABASE_MANAGER_H

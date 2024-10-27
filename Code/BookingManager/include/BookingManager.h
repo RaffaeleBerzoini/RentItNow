@@ -23,7 +23,7 @@ public:
         const Interfaces::CircleType& endCircle,        
         const int numOfDays);
 
-    Interfaces::Trip GetTrip(const std::string& drivingLicense);
+    std::vector<Interfaces::Trip> GetBookedTrip(const std::string& drivingLicense);
 
     BookingManager(std::shared_ptr<DatabaseManager> dbManagerPtr);
 };

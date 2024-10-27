@@ -42,6 +42,11 @@ sqlite3* DatabaseManager::OpenDB()
     return db;
 }
 
+bool DatabaseManager::UpdateDatabase()
+{
+    return true;
+}
+
 void DatabaseManager::SetupDB()
 {
     // Open the database
@@ -778,7 +783,8 @@ bool DatabaseManager::NextDay()
     }
 
     sqlite3_close(db);
-    return true;
+
+    return UpdateDatabase();
 }
 
 std::string DatabaseManager::GetNextDate(int numDays)
