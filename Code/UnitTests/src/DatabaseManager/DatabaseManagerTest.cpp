@@ -259,6 +259,10 @@ TEST_CASE("Car management")
         Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(dbManager.AddCar(car1));
         REQUIRE(dbManager.GetCarID("ABC123") == 1);
+        auto service = dbManager.GetService("ABC123");
+        REQUIRE(service.has_value());
+        REQUIRE(service.value().service_date == dbManager.GetCurrentDate());
+        REQUIRE(service.value().distance_since_last_service == 0);
 
         Interfaces::Car car2 = dbManager.GetCar("ABC123").value();
         REQUIRE(car1 == car2);
@@ -266,6 +270,10 @@ TEST_CASE("Car management")
         Interfaces::Car car3(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
         REQUIRE(dbManager.AddCar(car3));
         REQUIRE(dbManager.GetCarID("DEF456") == 2);
+        service = dbManager.GetService("DEF456");
+        REQUIRE(service.has_value());
+        REQUIRE(service.value().service_date == dbManager.GetCurrentDate());
+        REQUIRE(service.value().distance_since_last_service == 0);
 
         Interfaces::Car car4 = dbManager.GetCar("DEF456").value();
         REQUIRE(car3 == car4);
@@ -481,5 +489,45 @@ TEST_CASE("Trip and Milage")
         REQUIRE(dbManager.AddTrip(trip2));
 
         REQUIRE(dbManager.GetCarMilage("ABC123") == 25);
+    }
+}
+
+TEST_CASE("Service management")
+{
+    const std::string testDBPath = "database/test_db.db";
+
+    // Remove any existing test database file to ensure a clean start
+    if (std::filesystem::exists(testDBPath))
+    {
+        std::filesystem::remove(testDBPath);
+    }
+
+    // Instantiate DatabaseManager and set up the database
+    DatabaseManager dbManager(testDBPath);
+
+    SECTION("Add service")
+    {
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
+        REQUIRE(dbManager.AddCar(car1));
+        auto service = dbManager.GetService("ABC123");
+        REQUIRE(service.has_value());
+        REQUIRE(service.value().service_date == dbManager.GetCurrentDate());
+        REQUIRE(service.value().distance_since_last_service == 0);
+
+        dbManager.NextDay();
+        dbManager.NextDay();
+        dbManager.NextDay();
+
+        Interfaces::Car car2(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
+        REQUIRE(dbManager.AddCar(car2));
+        service = dbManager.GetService("DEF456");
+        REQUIRE(service.has_value());
+        REQUIRE(service.value().service_date == "2024-11-04");
+        REQUIRE(service.value().distance_since_last_service == 0);
+
+        service = dbManager.GetService("ABC123");
+        REQUIRE(service.has_value());
+        REQUIRE(service.value().service_date == "2024-11-01");
+
     }
 }

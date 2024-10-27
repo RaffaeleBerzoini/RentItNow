@@ -322,7 +322,7 @@ bool DatabaseManager::AddCar(const Interfaces::Car& car)
 
     sqlite3_close(db);
 
-    AddService(GetCarID(car.licensePlate));
+    AddService(car.licensePlate);
 
     return success;
 }
@@ -608,31 +608,53 @@ bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
     return success;
 }
 
-bool DatabaseManager::AddService(int car_id)
+bool DatabaseManager::AddService(const std::string& licensePlate)
 {
-    // Add a service for the car
-
-    std::lock_guard<std::mutex> lock(dbMutex);
+    // Add a service for the car with the given license plate. I cannot use GetCarID for deadlock reasons
 
     sqlite3* db = OpenDB();
 
     const char* sql = R"(
-			INSERT INTO Services (car_id, service_date, distance_since_last_service)
-			VALUES (?, ?, 0);
+			SELECT date
+			FROM CurrentDate
+			WHERE id = 1;
 		)";
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
+        std::cerr << "Failed to prepare getCurrentDate statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    std::string date;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        date = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+    }
+
+    sqlite3_finalize(stmt);
+
+
+    const char* sql2 = R"(
+			INSERT INTO Services (car_id, service_date, distance_since_last_service)
+			VALUES ((SELECT id FROM Cars WHERE license_plate = ?), ?, 0);
+		)";
+
+    sqlite3_stmt* stmt2;
+    if (sqlite3_prepare_v2(db, sql2, -1, &stmt2, nullptr) != SQLITE_OK)
+    {
         std::cerr << "Failed to prepare addService statement: " << sqlite3_errmsg(db) << std::endl;
         return false;
     }
 
-    sqlite3_bind_int(stmt, 1, car_id);
-    sqlite3_bind_text(stmt, 2, GetCurrentDate().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt2, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt2, 2, date.c_str(), -1, SQLITE_STATIC);
 
-    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
-    sqlite3_finalize(stmt);
+    bool success = (sqlite3_step(stmt2) == SQLITE_DONE);
+    sqlite3_finalize(stmt2);
 
     if (!success)
     {
@@ -641,6 +663,7 @@ bool DatabaseManager::AddService(int car_id)
 
     sqlite3_close(db);
     return success;
+    
 }
 
 std::string DatabaseManager::GetCurrentDate()
@@ -679,7 +702,7 @@ std::string DatabaseManager::GetCurrentDate()
 
 bool DatabaseManager::UpdateDatabase()
 {
-    std::lock_guard<std::mutex> lock(dbMutex);
+    // std::lock_guard<std::mutex> lock(dbMutex);
 
     // sqlite3* db = OpenDB();
 
@@ -845,6 +868,51 @@ bool DatabaseManager::NextDay()
     sqlite3_close(db);
 
     return UpdateDatabase();
+}
+
+std::optional<Interfaces::Service> DatabaseManager::GetService(const std::string& licensePlate)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT service_date, distance_since_last_service
+			FROM Services
+			JOIN Cars ON Services.car_id = Cars.id
+			WHERE Cars.license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getService statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return std::nullopt;
+    }
+
+    sqlite3_bind_text(stmt, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    std::string serviceDate;
+    int distanceSinceLastService;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        serviceDate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        distanceSinceLastService = sqlite3_column_int(stmt, 1);
+    }
+    else
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return std::nullopt;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return Interfaces::Service(serviceDate, distanceSinceLastService);
+
 }
 
 std::string DatabaseManager::GetNextDate(int numDays)

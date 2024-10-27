@@ -371,6 +371,17 @@ private:
     }
 };
 
+struct Service
+{
+    std::string service_date;
+    int distance_since_last_service;
+
+    Service(const std::string& service_date, int distance_since_last_service)
+        : service_date(service_date)
+        , distance_since_last_service(distance_since_last_service)
+    {}
+};
+
 }
 
 #endif

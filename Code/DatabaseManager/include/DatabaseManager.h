@@ -42,6 +42,8 @@ public:
     DB_EXPORT std::string GetNextDate(int numDays);
     DB_EXPORT bool NextDay();
 
+    DB_EXPORT std::optional<Interfaces::Service> GetService(const std::string& licensePlate);
+
 private:
     std::mutex dbMutex;
     std::string dbFilePath; // Database file path
@@ -52,7 +54,7 @@ private:
 
     bool UpdateDatabase();
 
-    bool AddService(int car_id);
+    bool AddService(const std::string& licensePlate);
 };
 
 #endif // DATABASE_MANAGER_H
