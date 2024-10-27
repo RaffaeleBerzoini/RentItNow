@@ -6,6 +6,7 @@
 #include "StructureInterface.h"
 #include <optional>
 #include <mutex>
+#include <vector>
 
 #ifdef DBMANAGER_EXPORT
 #    define DB_EXPORT __declspec(dllexport)
@@ -23,11 +24,13 @@ public:
     DB_EXPORT bool UpdateUser(const std::string& driving_license, const Interfaces::User& user);
     DB_EXPORT bool RemoveUser(const std::string& drivingLicense);
     DB_EXPORT std::optional<Interfaces::User> GetUser(const std::string& drivingLicense);
+    DB_EXPORT std::vector<Interfaces::User> GetAllUsers();
 
     DB_EXPORT bool AddCar(const Interfaces::Car& car);
     DB_EXPORT bool UpdateCar(const std::string& licensePlate, const Interfaces::Car& car);
     DB_EXPORT bool RemoveCar(const std::string& licensePlate);
     DB_EXPORT std::optional<Interfaces::Car> GetCar(const std::string& licensePlate);
+    DB_EXPORT std::vector<Interfaces::Car> GetAllCars();
 
 private:
     std::mutex dbMutex;

@@ -173,6 +173,23 @@ TEST_CASE("User management")
         REQUIRE_FALSE(user3.drivingLicense == user4.drivingLicense);
     }
 
+    SECTION("Get all users")
+    {
+        Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        Interfaces::User user2("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        Interfaces::User user3("Jim", "Beam", "789 Pine St", "5555 4444 3333 2222", "CC0033");
+
+        REQUIRE(dbManager.AddUser(user1));
+        REQUIRE(dbManager.AddUser(user2));
+        REQUIRE(dbManager.AddUser(user3));
+
+        std::vector<Interfaces::User> users = dbManager.GetAllUsers();
+        REQUIRE(users.size() == 3);
+        REQUIRE(users[0] == user1);
+        REQUIRE(users[1] == user2);
+        REQUIRE(users[2] == user3);
+    }
+
     SECTION("Multiple operations")
     {
         // Attempt to get a non-existent user
@@ -288,6 +305,23 @@ TEST_CASE("Car management")
         // licensePlate is not updated
         REQUIRE_FALSE(car3.licensePlate == car4.licensePlate);
         REQUIRE(car3.status == car4.status);
+    }
+
+    SECTION("Get all cars")
+    {
+        Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
+        Interfaces::Car car2(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
+        Interfaces::Car car3(Interfaces::CarType::DELUXE, "GHI789", "BMW", "M5", Interfaces::CarStatus::UNDER_SERVICE);
+
+        REQUIRE(dbManager.AddCar(car1));
+        REQUIRE(dbManager.AddCar(car2));
+        REQUIRE(dbManager.AddCar(car3));
+
+        std::vector<Interfaces::Car> cars = dbManager.GetAllCars();
+        REQUIRE(cars.size() == 3);
+        REQUIRE(cars[0] == car1);
+        REQUIRE(cars[1] == car2);
+        REQUIRE(cars[2] == car3);
     }
 
     SECTION("Multiple operations")

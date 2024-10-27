@@ -205,6 +205,43 @@ std::optional<Interfaces::User> DatabaseManager::GetUser(const std::string& driv
     return Interfaces::User(name, surname, address, creditCard, drivingLicense);
 }
 
+std::vector<Interfaces::User> DatabaseManager::GetAllUsers()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT name, surname, address, credit_card, driving_license
+			FROM Users;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getAllUsers statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return std::vector<Interfaces::User>();
+    }
+
+    std::vector<Interfaces::User> users;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        std::string name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        std::string surname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        std::string address = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+        std::string creditCard = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+        std::string drivingLicense = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+
+        users.push_back(Interfaces::User(name, surname, address, creditCard, drivingLicense));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return users;
+}
+
 bool DatabaseManager::AddCar(const Interfaces::Car& car)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
@@ -367,6 +404,43 @@ std::optional<Interfaces::Car> DatabaseManager::GetCar(const std::string& licens
     sqlite3_close(db);
 
     return Interfaces::Car(type, licensePlate, brand, name, status);
+}
+
+std::vector<Interfaces::Car> DatabaseManager::GetAllCars()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT car_type, license_plate, brand, name, status
+			FROM Cars;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getAllCars statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return std::vector<Interfaces::Car>();
+    }
+
+    std::vector<Interfaces::Car> cars;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        std::string type = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        std::string licensePlate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        std::string brand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+        std::string name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+        std::string status = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+
+        cars.push_back(Interfaces::Car(type, licensePlate, brand, name, status));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return cars;
 }
 
 void DatabaseManager::CreateTables(sqlite3* db)
