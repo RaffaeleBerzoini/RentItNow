@@ -266,7 +266,7 @@ bool DatabaseManager::AddCar(const Interfaces::Car& car)
         return false;
     }
 
-    // Solving lifetime issuse 
+    // Solving lifetime issuse
     std::string type = car.carTypeToString();
     std::string status = car.carStatusToString();
 
@@ -489,6 +489,49 @@ WHERE Cars.license_plate = 'ABC123';
     sqlite3_close(db);
 
     return mileage;
+}
+
+bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			INSERT INTO Trips (user_id, car_id, start_circle, destination_circle, distance, cost, start_rental_date, end_rental_date)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare addTrip statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    // Solving lifetime issuse
+    std::string startCircle = trip.startCircleToString();
+    std::string destinationCircle = trip.destinationCircleToString();
+
+    sqlite3_bind_int(stmt, 1, trip.user_id);
+    sqlite3_bind_int(stmt, 2, trip.car_id);
+    sqlite3_bind_text(stmt, 3, startCircle.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, destinationCircle.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, trip.distance);
+    sqlite3_bind_double(stmt, 6, trip.cost);
+    sqlite3_bind_text(stmt, 7, trip.start_rental_date.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 8, trip.end_rental_date.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to add trip: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    sqlite3_close(db);
+    return success;
 }
 
 std::string DatabaseManager::GetCurrentDate()
