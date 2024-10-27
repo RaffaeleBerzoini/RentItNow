@@ -1,4 +1,5 @@
 #include <vector>
+#include <optional>
 
 #ifdef INTERFACE_EXPORT
 #    define API_INTERFACE_EXPORT __declspec(dllexport)

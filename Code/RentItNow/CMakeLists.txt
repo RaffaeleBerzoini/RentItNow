@@ -4,4 +4,4 @@ add_executable(RenItNow
 )
 
 # Link the executable to the SQLite3 library
-target_link_libraries(RenItNow sqlite3)
+target_link_libraries(RenItNow sqlite3 API)

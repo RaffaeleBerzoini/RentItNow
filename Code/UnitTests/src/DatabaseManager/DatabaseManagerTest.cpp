@@ -137,6 +137,8 @@ TEST_CASE("User management")
         REQUIRE(user3 == user4);
 
         REQUIRE(user2 != user4);
+
+        REQUIRE_FALSE(dbManager.AddUser(user1));
     }
 
     SECTION("Add and remove user")
@@ -204,6 +206,9 @@ TEST_CASE("User management")
         REQUIRE(dbManager.AddUser(user2));
         REQUIRE(dbManager.AddUser(user3));
 
+        // Add duplicate user
+        REQUIRE_FALSE(dbManager.AddUser(user1));
+
         // Verify that users can be retrieved correctly
         REQUIRE(dbManager.GetUser("AA0011").has_value());
         REQUIRE(dbManager.GetUser("BB0022").has_value());
@@ -270,6 +275,8 @@ TEST_CASE("Car management")
         REQUIRE(car5 == car6);
 
         REQUIRE(car4 != car6);
+
+        REQUIRE_FALSE(dbManager.AddCar(car1));
     }
 
     SECTION("Add and remove car")
@@ -337,6 +344,9 @@ TEST_CASE("Car management")
         REQUIRE(dbManager.AddCar(car1));
         REQUIRE(dbManager.AddCar(car2));
         REQUIRE(dbManager.AddCar(car3));
+
+        // Add duplicate car
+        REQUIRE_FALSE(dbManager.AddCar(car1));
 
         // Verify that cars can be retrieved correctly
         REQUIRE(dbManager.GetCar("ABC123").has_value());

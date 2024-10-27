@@ -2,7 +2,7 @@
 
 class Core {
 private:
-    UserManager userManager;
+    std::unique_ptr<UserManager> userManager;
     std::shared_ptr<DatabaseManager> databaseManager;
     Core();
 

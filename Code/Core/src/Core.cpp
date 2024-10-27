@@ -6,9 +6,10 @@ std::string DATABASE_PATH = "database/database.db";
 }
 
 Core::Core()
-    : databaseManager(std::make_shared<DatabaseManager>(DATABASE_PATH))
-    , userManager(databaseManager)
-{}
+{
+    databaseManager = std::make_shared<DatabaseManager>(DATABASE_PATH);
+    userManager = std::make_unique<UserManager>(UserManager(databaseManager));
+}
 
 Core* Core::GetInstance()
 {
@@ -21,5 +22,5 @@ Core* Core::GetInstance()
 
 UserManager& Core::GetUserManager()
 {
-    return userManager;
+    return *userManager;
 }
