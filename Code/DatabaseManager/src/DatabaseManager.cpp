@@ -247,6 +247,41 @@ std::vector<Interfaces::User> DatabaseManager::GetAllUsers()
     return users;
 }
 
+int DatabaseManager::GetUserID(const std::string& drivingLicense)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT id
+			FROM Users
+			WHERE driving_license = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getUserID statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, drivingLicense.c_str(), -1, SQLITE_STATIC);
+
+    int id = -1;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        id = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return id;
+}
+
 bool DatabaseManager::AddCar(const Interfaces::Car& car)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
@@ -446,6 +481,41 @@ std::vector<Interfaces::Car> DatabaseManager::GetAllCars()
     sqlite3_close(db);
 
     return cars;
+}
+
+int DatabaseManager::GetCarID(const std::string& licensePlate)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT id
+			FROM Cars
+			WHERE license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getCarID statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    int id = -1;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        id = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return id;
 }
 
 int DatabaseManager::GetCarMilage(const std::string& licensePlate)

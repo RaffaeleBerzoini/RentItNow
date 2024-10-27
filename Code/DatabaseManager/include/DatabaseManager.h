@@ -25,12 +25,14 @@ public:
     DB_EXPORT bool RemoveUser(const std::string& drivingLicense);
     DB_EXPORT std::optional<Interfaces::User> GetUser(const std::string& drivingLicense);
     DB_EXPORT std::vector<Interfaces::User> GetAllUsers();
+    DB_EXPORT int GetUserID(const std::string& drivingLicense);
 
     DB_EXPORT bool AddCar(const Interfaces::Car& car);
     DB_EXPORT bool UpdateCar(const std::string& licensePlate, const Interfaces::Car& car);
     DB_EXPORT bool RemoveCar(const std::string& licensePlate);
     DB_EXPORT std::optional<Interfaces::Car> GetCar(const std::string& licensePlate);
     DB_EXPORT std::vector<Interfaces::Car> GetAllCars();
+    DB_EXPORT int GetCarID(const std::string& licensePlate);
 
     DB_EXPORT int GetCarMilage(const std::string& licensePlate);
 

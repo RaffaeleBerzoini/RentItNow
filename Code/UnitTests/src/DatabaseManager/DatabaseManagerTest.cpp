@@ -126,12 +126,14 @@ TEST_CASE("User management")
     {
         Interfaces::User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
         REQUIRE(dbManager.AddUser(user1));
+        REQUIRE(dbManager.GetUserID("AA0011") == 1);
 
         Interfaces::User user2 = dbManager.GetUser("AA0011").value();
         REQUIRE(user1 == user2);
 
         Interfaces::User user3("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
         REQUIRE(dbManager.AddUser(user3));
+        REQUIRE(dbManager.GetUserID("BB0022") == 2);
 
         Interfaces::User user4 = dbManager.GetUser("BB0022").value();
         REQUIRE(user3 == user4);
@@ -256,12 +258,14 @@ TEST_CASE("Car management")
     {
         Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(dbManager.AddCar(car1));
+        REQUIRE(dbManager.GetCarID("ABC123") == 1);
 
         Interfaces::Car car2 = dbManager.GetCar("ABC123").value();
         REQUIRE(car1 == car2);
 
         Interfaces::Car car3(Interfaces::CarType::MID_CLASS, "DEF456", "Honda", "Civic", Interfaces::CarStatus::RENTED);
         REQUIRE(dbManager.AddCar(car3));
+        REQUIRE(dbManager.GetCarID("DEF456") == 2);
 
         Interfaces::Car car4 = dbManager.GetCar("DEF456").value();
         REQUIRE(car3 == car4);
