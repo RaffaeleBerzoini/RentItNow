@@ -6,10 +6,12 @@ private:
     std::shared_ptr<DatabaseManager> dbManager;
 
     std::vector<Interfaces::Car> GetAvailableCars();
-    std::optional<Interfaces::Car> GetBestCar(
-        const std::vector<Interfaces::Car>& cars,
+    std::optional<Interfaces::Car> GetBestCar(        
         const Interfaces::CarType& carType,
         const unsigned char& passengers);
+
+    int ComputeDistance(const Interfaces::CircleType& startCircle, const Interfaces::CircleType& endCircle);
+    double ComputePrice(const Interfaces::CarSpecifics& carSpecifics, const int& distance);
 
 public:
 
@@ -18,9 +20,8 @@ public:
         const Interfaces::CarType& carType,
         const unsigned char& passengers,
         const Interfaces::CircleType& startCircle,
-        const Interfaces::CircleType& endCircle,
-        const std::string& startDate,
-        const std::string& endDate);
+        const Interfaces::CircleType& endCircle,        
+        const int numOfDays);
 
     Interfaces::Trip GetTrip(const std::string& drivingLicense);
 
