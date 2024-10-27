@@ -14,7 +14,7 @@ namespace API
         API_INTERFACE_EXPORT bool UpdateUser(const std::string& driving_license, const Interfaces::User& user);
         API_INTERFACE_EXPORT bool RemoveUser(const std::string& drivingLicense);
         API_INTERFACE_EXPORT std::optional<Interfaces::User> GetUser(const std::string& drivingLicense);
-        // API_INTERFACE_EXPORT std::vector<Interfaces::User> GetAllUsers();
+        API_INTERFACE_EXPORT std::vector<Interfaces::User> GetAllUsers();
 	}
 	namespace Boss
 	{

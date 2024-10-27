@@ -26,7 +26,7 @@ std::optional<Interfaces::User> Common::GetUser(const std::string& drivingLicens
     return CorePtr()->GetUserManager().GetUser(drivingLicense);
 }
 
-//std::vector<Interfaces::User> Common::GetAllUsers()
-//{
-//    return CorePtr()->GetUserManager().GetAllUsers();
-//}
+std::vector<Interfaces::User> Common::GetAllUsers()
+{
+    return CorePtr()->GetUserManager().GetAllUsers();
+}

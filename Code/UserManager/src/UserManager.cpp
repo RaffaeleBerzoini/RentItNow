@@ -48,6 +48,11 @@ std::optional<Interfaces::User> UserManager::GetUser(const std::string& drivingL
     return dbManager->GetUser(drivingLicense);
 }
 
+std::vector<Interfaces::User> UserManager::GetAllUsers()
+{
+    return dbManager->GetAllUsers();
+}
+
 UserManager::UserManager(std::shared_ptr<DatabaseManager> dbManagerPtr)
     : dbManager(dbManagerPtr)
 {}
