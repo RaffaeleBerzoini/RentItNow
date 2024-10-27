@@ -22,6 +22,7 @@ public:
 private:
     std::string dbFilePath; // Database file path
     void CreateTables(sqlite3* db);
+    sqlite3* OpenDB();
 };
 
 #endif // DATABASE_MANAGER_H

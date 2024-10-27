@@ -22,13 +22,20 @@ DatabaseManager::DatabaseManager(const std::string& dbFilePath)
     std::filesystem::create_directories(dbDirectory);
 }
 
+sqlite3* DatabaseManager::OpenDB()
+{
+    sqlite3* db;
+    if (sqlite3_open(dbFilePath.c_str(), &db) != SQLITE_OK)
+    {
+        throw std::runtime_error("Error: Can't open database: " + std::string(sqlite3_errmsg(db)));
+    }
+
+    return db;
+}
+
 void DatabaseManager::SetupDB() {
     // Open the database
-    sqlite3* db;
-    if (sqlite3_open(dbFilePath.c_str(), &db) != SQLITE_OK) {
-        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-        return;
-    }
+    sqlite3* db = OpenDB();
 
     CreateTables(db);
 
@@ -124,3 +131,4 @@ void DatabaseManager::CreateTables(sqlite3* db) {
         sqlite3_free(errorMessage);
     }
 }
+

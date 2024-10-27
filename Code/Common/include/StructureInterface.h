@@ -25,39 +25,29 @@ enum class CircleType
     OUTER_CIRCLE
 };
 
-/*
-A user can register to the company service, update its data and delete its account. User has (at least):
-
-name,
-surname,
-address,
-credit card,
-driving license
-*/
-
 struct User
 {
     std::string name;
     std::string surname;
     std::string address;
-    std::string credit_card;
-    std::string driving_license;
+    std::string creditCard;
+    std::string drivingLicense;
 
     // Constructor only with non empty strings
     User(
         const std::string& name,
         const std::string& surname,
         const std::string& address,
-        const std::string& credit_card,
-        const std::string& driving_license)
+        const std::string& creditCard,
+        const std::string& drivingLicense)
     {
-        if (name.empty() || surname.empty() || address.empty() || credit_card.empty() || driving_license.empty())
+        if (name.empty() || surname.empty() || address.empty() || creditCard.empty() || drivingLicense.empty())
             throw std::invalid_argument("Empty string in User constructor");
         this->name = name;
         this->surname = surname;
         this->address = address;
-        this->credit_card = credit_card;
-        this->driving_license = driving_license;
+        this->creditCard = creditCard;
+        this->drivingLicense = drivingLicense;
     }
 };
 
@@ -81,8 +71,8 @@ DELUXE: 50km/h
 
 struct CarSpecifics
 {
-    unsigned char _seats;
-    unsigned char price_per_km;
+    unsigned char seats;
+    unsigned char pricePerKm;
     unsigned char speed;
     CarType type;
 
@@ -92,18 +82,18 @@ struct CarSpecifics
         switch (type)
         {
         case CarType::ECO:
-            _seats = 2;
-            price_per_km = 1;
+            seats = 2;
+            pricePerKm = 1;
             speed = 15;
             break;
         case CarType::MID_CLASS:
-            _seats = 4;
-            price_per_km = 2;
+            seats = 4;
+            pricePerKm = 2;
             speed = 25;
             break;
         case CarType::DELUXE:
-            _seats = 7;
-            price_per_km = 5;
+            seats = 7;
+            pricePerKm = 5;
             speed = 50;
             break;
         }
@@ -111,12 +101,12 @@ struct CarSpecifics
 
     unsigned char seats() const
     {
-        return _seats;
+        return seats;
     }
 
     unsigned char pricePerKm() const
     {
-        return price_per_km;
+        return pricePerKm;
     }
 
     unsigned char speed() const
@@ -128,7 +118,7 @@ struct CarSpecifics
 struct Car
 {
     CarSpecifics carSpecifics;
-    std::string license_plate;
+    std::string licensePlate;
     std::string brand;
     std::string name;
     CarStatus status;
@@ -184,48 +174,48 @@ struct Car
     }
 
     Car(CarType type,
-        const std::string& license_plate,
+        const std::string& licensePlate,
         const std::string& brand,
         const std::string& name,
         CarStatus status)
         : carSpecifics(type)
-        , license_plate(license_plate)
+        , licensePlate(licensePlate)
         , brand(brand)
         , name(name)
         , status(status)
     {}
 
     Car(CarType type,
-        const std::string& license_plate,
+        const std::string& licensePlate,
         const std::string& brand,
         const std::string& name,
         const std::string& status)
         : carSpecifics(type)
-        , license_plate(license_plate)
+        , licensePlate(licensePlate)
         , brand(brand)
         , name(name)
         , status(stringToCarStatus(status))
     {}
 
     Car(const std::string& type,
-        const std::string& license_plate,
+        const std::string& licensePlate,
         const std::string& brand,
         const std::string& name,
         const std::string& status)
         : carSpecifics(stringToCarType(type))
-        , license_plate(license_plate)
+        , licensePlate(licensePlate)
         , brand(brand)
         , name(name)
         , status(stringToCarStatus(status))
     {}
 
     Car(const std::string& type,
-        const std::string& license_plate,
+        const std::string& licensePlate,
         const std::string& brand,
         const std::string& name,
         CarStatus status)
         : carSpecifics(stringToCarType(type))
-        , license_plate(license_plate)
+        , licensePlate(licensePlate)
         , brand(brand)
         , name(name)
         , status(status)
