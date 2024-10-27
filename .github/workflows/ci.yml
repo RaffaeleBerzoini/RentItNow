@@ -8,6 +8,10 @@ on:
     branches:
       - develop
 
+env:
+  MAJOR_VERSION: "1"    # Change this for major version bumps
+  MINOR_VERSION: "1"    # Change this for minor version bumps
+
 jobs:
   build:
     runs-on: windows-latest
@@ -44,6 +48,8 @@ jobs:
           name: release-binaries
           path: build/bin/Release
 
+  # Settings > Actions > General > Workflow Permissions and enable 'Read & Write'.
+  # Or Personal Access Token with 'repo' scope and add it as a secret.
   create_release:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -78,10 +84,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $version = "v1.0.$(git rev-list --count HEAD)"
+          $version = "v${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.$(git rev-list --count HEAD)"          
           gh release create $version `
             --title "Release $version" `
-            --notes "Automated release from develop branch" `
-            --target develop `
+            --notes "Automated release from ${{ github.ref_name }} branch" `
+            --target ${{ github.ref_name }} `
+            --draft true `
             debug-binaries.zip `
             release-binaries.zip
