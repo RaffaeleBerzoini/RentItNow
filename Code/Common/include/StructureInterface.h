@@ -26,6 +26,42 @@ enum class CircleType
 };
 
 /*
+A user can register to the company service, update its data and delete its account. User has (at least):
+
+name,
+surname,
+address,
+credit card,
+driving license
+*/
+
+struct User
+{
+    std::string name;
+    std::string surname;
+    std::string address;
+    std::string credit_card;
+    std::string driving_license;
+
+    // Constructor only with non empty strings
+    User(
+        const std::string& name,
+        const std::string& surname,
+        const std::string& address,
+        const std::string& credit_card,
+        const std::string& driving_license)
+    {
+        if (name.empty() || surname.empty() || address.empty() || credit_card.empty() || driving_license.empty())
+            throw std::invalid_argument("Empty string in User constructor");
+        this->name = name;
+        this->surname = surname;
+        this->address = address;
+        this->credit_card = credit_card;
+        this->driving_license = driving_license;
+    }
+};
+
+/*
 There are three types of car:
 
 ECO, max 2 persons,
@@ -97,7 +133,7 @@ struct Car
     std::string name;
     CarStatus status;
 
-    std::string carTypeToString()
+    std::string carTypeToString() const
     {
         switch (carSpecifics.type)
         {
@@ -111,7 +147,7 @@ struct Car
         throw std::invalid_argument("Invalid CarType");
     }
 
-    std::string carStatusToString()
+    std::string carStatusToString() const
     {
         switch (status)
         {
@@ -125,7 +161,7 @@ struct Car
         throw std::invalid_argument("Invalid CarStatus");
     }
 
-    CarType stringToCarType(const std::string& type)
+    CarType stringToCarType(const std::string& type) const
     {
         if (type == "ECO")
             return CarType::ECO;
@@ -136,7 +172,7 @@ struct Car
         throw std::invalid_argument("Invalid car type string");
     }
 
-    CarStatus stringToCarStatus(const std::string& status)
+    CarStatus stringToCarStatus(const std::string& status) const
     {
         if (status == "available")
             return CarStatus::AVAILABLE;
@@ -207,12 +243,12 @@ struct Trip
     std::string start_rental_date;
     std::string end_rental_date;
 
-    std::string startCircleToString()
+    std::string startCircleToString() const
     {
         return circleTypeToString(start_circle);
     }
 
-    std::string destinationCircleToString()
+    std::string destinationCircleToString() const
     {
         return circleTypeToString(destination_circle);
     }
@@ -295,7 +331,7 @@ struct Trip
 
 private:
 
-    std::string circleTypeToString(CircleType circle)
+    std::string circleTypeToString(CircleType circle) const
     {
         switch (circle)
         {
@@ -309,7 +345,7 @@ private:
         throw std::invalid_argument("Invalid CircleType");
     }
 
-    CircleType stringToCircleType(const std::string& circle)
+    CircleType stringToCircleType(const std::string& circle) const
     {
         if (circle == "Inner Circle")
             return CircleType::INNER_CIRCLE;
