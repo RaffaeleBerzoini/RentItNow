@@ -7,4 +7,5 @@
 target_link_libraries (UnitTests PRIVATE
   Catch2::Catch2WithMain
   DatabaseManager
+  UserManager
 )

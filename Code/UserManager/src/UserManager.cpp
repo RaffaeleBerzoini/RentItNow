@@ -1,39 +1,45 @@
 #include <iostream>
 #include "UserManager.h"
 
-void UserManager::AddUser(const User& user)
+bool UserManager::AddUser(const User& user)
 {
     if (dbManager->AddUser(user))
     {
         std::cout << "User " << user.drivingLicense << " added" << std::endl;
+        return true;
     }
     else
     {
         std::cout << "User not added" << std::endl;
+        return false;
     }
 }
 
-void UserManager::UpdateUser(const std::string& driving_license, const User& user)
+bool UserManager::UpdateUser(const std::string& driving_license, const User& user)
 {
     if (dbManager->UpdateUser(driving_license, user))
     {
         std::cout << "User " << user.drivingLicense << " updated" << std::endl;
+        return true;
     }
     else
     {
         std::cout << "User not updated" << std::endl;
+        return false;
     }
 }
 
-void UserManager::RemoveUser(const std::string& drivingLicense)
+bool UserManager::RemoveUser(const std::string& drivingLicense)
 {
     if (dbManager->RemoveUser(drivingLicense))
     {
         std::cout << "User " << drivingLicense << " removed" << std::endl;
+        return true;
     }
     else
     {
         std::cout << "User not removed" << std::endl;
+        return false;
     }
 }
 
