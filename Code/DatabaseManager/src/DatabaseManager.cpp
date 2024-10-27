@@ -5,6 +5,7 @@
 namespace
 {
 std::string INITIAL_DATE = "2024-11-01"; // Initial date for the database when it's created
+int MAX_DISTANCE = 1500;                 // Maximum distance a car can travel before needing a service
 }
 
 DatabaseManager::DatabaseManager(const std::string& dbFilePath)
@@ -40,11 +41,6 @@ sqlite3* DatabaseManager::OpenDB()
     }
 
     return db;
-}
-
-bool DatabaseManager::UpdateDatabase()
-{
-    return true;
 }
 
 void DatabaseManager::SetupDB()
@@ -325,6 +321,9 @@ bool DatabaseManager::AddCar(const Interfaces::Car& car)
     }
 
     sqlite3_close(db);
+
+    AddService(GetCarID(car.licensePlate));
+
     return success;
 }
 
@@ -609,6 +608,41 @@ bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
     return success;
 }
 
+bool DatabaseManager::AddService(int car_id)
+{
+    // Add a service for the car
+
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			INSERT INTO Services (car_id, service_date, distance_since_last_service)
+			VALUES (?, ?, 0);
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare addService statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, car_id);
+    sqlite3_bind_text(stmt, 2, GetCurrentDate().c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to add service: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    sqlite3_close(db);
+    return success;
+}
+
 std::string DatabaseManager::GetCurrentDate()
 {
     std::lock_guard<std::mutex> lock(dbMutex);
@@ -640,6 +674,32 @@ std::string DatabaseManager::GetCurrentDate()
     sqlite3_close(db);
 
     return date;
+}
+
+
+bool DatabaseManager::UpdateDatabase()
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    // sqlite3* db = OpenDB();
+
+    // If we are at end_rental_date + 1 day, we need to update the status of the car to available    
+    /// TODO
+
+    // For all cars that are at end_rental_date + 1, we need to update the distance_since_last_service
+    /// TODO
+
+    // If we are at service_date + 1 day, we need to update the status of the car to available
+    /// TODO
+
+    // For all cars that have reached distance_since_last_service>=MAX_DISTANCE, we need to change service_date to today, distance_since_last_service
+    // to 0
+    /// TODO
+    
+    // For all cars that have service_date equal to today, we need to update the status of the car to under_service
+    /// TODO
+
+    return true;
 }
 
 void DatabaseManager::CreateTables(sqlite3* db)

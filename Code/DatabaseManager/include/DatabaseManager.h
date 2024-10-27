@@ -51,6 +51,8 @@ private:
     sqlite3* OpenDB();
 
     bool UpdateDatabase();
+
+    bool AddService(int car_id);
 };
 
 #endif // DATABASE_MANAGER_H
