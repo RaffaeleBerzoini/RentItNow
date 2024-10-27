@@ -205,12 +205,178 @@ std::optional<User> DatabaseManager::GetUser(const std::string& drivingLicense)
     return User(name, surname, address, creditCard, drivingLicense);
 }
 
+bool DatabaseManager::AddCar(const Car& car)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+
+    const char* sql = R"(
+			INSERT INTO Cars (car_type, license_plate, brand, name, status)
+			VALUES (?, ?, ?, ?, ?);
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare addCar statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+
+    // Solving lifetime issuse 
+    std::string type = car.carTypeToString();
+    std::string status = car.carStatusToString();
+
+    sqlite3_bind_text(stmt, 1, type.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, car.licensePlate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, car.brand.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, car.name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, status.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to add car: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    sqlite3_close(db);
+    return success;
+}
+
+bool DatabaseManager::UpdateCar(const std::string& licensePlate, const Car& updatedCar)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			UPDATE Cars SET
+				car_type = ?,
+				brand = ?,
+				name = ?,
+				status = ?
+			WHERE license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare updateCar statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    // Solving lifetime issuse
+    std::string type = updatedCar.carTypeToString();
+    std::string status = updatedCar.carStatusToString();
+
+    sqlite3_bind_text(stmt, 1, type.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, updatedCar.brand.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, updatedCar.name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, status.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to update car: " << sqlite3_errmsg(db) << std::endl;
+    }
+    sqlite3_close(db);
+    return success;
+}
+
+bool DatabaseManager::RemoveCar(const std::string& licensePlate)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			DELETE FROM Cars WHERE license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare removeCar statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+
+    if (!success)
+    {
+        std::cerr << "Failed to remove car: " << sqlite3_errmsg(db) << std::endl;
+    }
+    sqlite3_close(db);
+    return success;
+}
+
+std::optional<Car> DatabaseManager::GetCar(const std::string& licensePlate)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT car_type, brand, name, status
+			FROM Cars
+			WHERE license_plate = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getCar statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return std::nullopt;
+    }
+
+    sqlite3_bind_text(stmt, 1, licensePlate.c_str(), -1, SQLITE_STATIC);
+
+    std::string type;
+    std::string brand;
+    std::string name;
+    std::string status;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        type = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        brand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+        status = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+    }
+    else
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return std::nullopt;
+    }
+
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+
+    return Car(type, licensePlate, brand, name, status);
+}
+
 void DatabaseManager::CreateTables(sqlite3* db)
 {
+    // TODO: CHECK (type IN ('ECO', 'MID-CLASS', 'DELUXE'))
+    // TODO:  CHECK (status IN ('available', 'rented', 'under_service'))
     const char* createCarsTable = R"(
         CREATE TABLE IF NOT EXISTS Cars (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            type TEXT NOT NULL CHECK (type IN ('ECO', 'MID-CLASS', 'DELUXE')),
+            car_type TEXT NOT NULL CHECK (car_type IN ('ECO', 'MID-CLASS', 'DELUXE')),
             license_plate TEXT UNIQUE NOT NULL,
             brand TEXT NOT NULL,
             name TEXT NOT NULL,

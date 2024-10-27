@@ -82,9 +82,9 @@ DELUXE: 50km/h
 
 struct CarSpecifics
 {
-    unsigned char seats;
-    unsigned char pricePerKm;
-    unsigned char speed;
+    unsigned char seats{};
+    unsigned char pricePerKm{};
+    unsigned char speed{};
     CarType type;
 
     CarSpecifics(CarType type)
@@ -231,6 +231,17 @@ struct Car
         , name(name)
         , status(status)
     {}
+
+    bool operator==(const Car& other) const
+    {
+        return carSpecifics.type == other.carSpecifics.type && licensePlate == other.licensePlate &&
+            brand == other.brand && name == other.name && status == other.status;
+    }
+
+    bool operator!=(const Car& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 struct Trip

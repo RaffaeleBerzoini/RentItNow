@@ -1,5 +1,4 @@
 #define CATCH_CONFIG_MAIN
-#define CATCH_CONFIG_NO_PARALLEL
 #include <catch2/catch_test_macros.hpp>
 #include "DatabaseManager.h"
 #include <sqlite3.h>
@@ -217,5 +216,123 @@ TEST_CASE("User management")
         // Remove user3
         REQUIRE(dbManager.RemoveUser("CC0033"));
         REQUIRE_FALSE(dbManager.GetUser("CC0033").has_value());
+    }
+}
+
+TEST_CASE("Car management")
+{
+    const std::string testDBPath = "database/test_db.db";
+    std::cout << "Test database path: " << testDBPath << std::endl;
+
+    // Remove any existing test database file to ensure a clean start
+    if (std::filesystem::exists(testDBPath))
+    {
+        std::filesystem::remove(testDBPath);
+    }
+
+    // Instantiate DatabaseManager and set up the database
+    DatabaseManager dbManager(testDBPath);
+
+    SECTION("Add and get existing car")
+    {
+        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        REQUIRE(dbManager.AddCar(car1));
+
+        Car car2 = dbManager.GetCar("ABC123").value();
+        REQUIRE(car1 == car2);
+
+        Car car3(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
+        REQUIRE(dbManager.AddCar(car3));
+
+        Car car4 = dbManager.GetCar("DEF456").value();
+        REQUIRE(car3 == car4);
+
+        REQUIRE(car2 != car4);
+
+        Car car5(CarType::DELUXE, "GHI789", "BMW", "M5", CarStatus::UNDER_SERVICE);
+        REQUIRE(dbManager.AddCar(car5));
+
+        Car car6 = dbManager.GetCar("GHI789").value();
+        REQUIRE(car5 == car6);
+
+        REQUIRE(car4 != car6);
+    }
+
+    SECTION("Add and remove car")
+    {
+        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        REQUIRE(dbManager.AddCar(car1));
+
+        Car car2 = dbManager.GetCar("ABC123").value();
+        REQUIRE(car1 == car2);
+
+        REQUIRE(dbManager.RemoveCar("ABC123"));
+        REQUIRE_FALSE(dbManager.GetCar("ABC123").has_value());
+    }
+
+    SECTION("Add and update car")
+    {
+        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        REQUIRE(dbManager.AddCar(car1));
+
+        Car car2 = dbManager.GetCar("ABC123").value();
+        REQUIRE(car1 == car2);
+
+        Car car3(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
+        REQUIRE(dbManager.UpdateCar("ABC123", car3));
+
+        // The license plate should not be updated
+        REQUIRE_FALSE(dbManager.GetCar("DEF456").has_value());
+
+        Car car4 = dbManager.GetCar("ABC123").value();
+        REQUIRE(car3.brand == car4.brand);
+        REQUIRE(car3.name == car4.name);
+        REQUIRE(car3.carSpecifics.type == car4.carSpecifics.type);
+        // licensePlate is not updated
+        REQUIRE_FALSE(car3.licensePlate == car4.licensePlate);
+        REQUIRE(car3.status == car4.status);
+    }
+
+    SECTION("Multiple operations")
+    {
+        // Attempt to get a non-existent car
+        REQUIRE_FALSE(dbManager.GetCar("NON_EXISTENT").has_value());
+
+        // Add some cars
+        Car car1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::AVAILABLE);
+        Car car2(CarType::MID_CLASS, "DEF456", "Honda", "Civic", CarStatus::RENTED);
+        Car car3(CarType::DELUXE, "GHI789", "BMW", "M5", CarStatus::UNDER_SERVICE);
+
+        REQUIRE(dbManager.AddCar(car1));
+        REQUIRE(dbManager.AddCar(car2));
+        REQUIRE(dbManager.AddCar(car3));
+
+        // Verify that cars can be retrieved correctly
+        REQUIRE(dbManager.GetCar("ABC123").has_value());
+        REQUIRE(dbManager.GetCar("DEF456").has_value());
+        REQUIRE(dbManager.GetCar("GHI789").has_value());
+
+        // Remove a car
+        REQUIRE(dbManager.RemoveCar("DEF456"));
+        REQUIRE_FALSE(dbManager.GetCar("DEF456").has_value());
+
+        // Update car1's information and verify
+        Car updatedCar1(CarType::ECO, "ABC123", "Toyota", "Corolla", CarStatus::RENTED);
+        REQUIRE(dbManager.UpdateCar("ABC123", updatedCar1));
+
+        // Check if the updated information is correct
+        Car fetchedCar1 = dbManager.GetCar("ABC123").value();
+        REQUIRE(updatedCar1.brand == fetchedCar1.brand);
+        REQUIRE(updatedCar1.name == fetchedCar1.name);
+        REQUIRE(updatedCar1.carSpecifics.type == fetchedCar1.carSpecifics.type);
+        REQUIRE(updatedCar1.licensePlate == fetchedCar1.licensePlate);
+        REQUIRE(updatedCar1.status == fetchedCar1.status);
+
+        // Verify that car3 exists before removing
+        REQUIRE(dbManager.GetCar("GHI789").has_value());
+
+        // Remove car3
+        REQUIRE(dbManager.RemoveCar("GHI789"));
+        REQUIRE_FALSE(dbManager.GetCar("GHI789").has_value());
     }
 }

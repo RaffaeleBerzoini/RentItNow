@@ -24,6 +24,11 @@ public:
     DB_EXPORT bool RemoveUser(const std::string& drivingLicense);
     DB_EXPORT std::optional<User> GetUser(const std::string& drivingLicense);
 
+    DB_EXPORT bool AddCar(const Car& car);
+    DB_EXPORT bool UpdateCar(const std::string& licensePlate, const Car& car);
+    DB_EXPORT bool RemoveCar(const std::string& licensePlate);
+    DB_EXPORT std::optional<Car> GetCar(const std::string& licensePlate);
+
 private:
     std::mutex dbMutex;
     std::string dbFilePath; // Database file path
