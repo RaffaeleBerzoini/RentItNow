@@ -175,4 +175,47 @@ TEST_CASE("User management")
         REQUIRE(user3.surname == user4.surname);
         REQUIRE_FALSE(user3.drivingLicense == user4.drivingLicense);
     }
+
+    SECTION("Multiple operations")
+    {
+        // Attempt to get a non-existent user
+        REQUIRE_FALSE(dbManager.GetUser("NON_EXISTENT").has_value());
+
+        // Add some users
+        User user1("John", "Doe", "123 Main St", "1234 5678 9012 3456", "AA0011");
+        User user2("Jane", "Doe", "456 Elm St", "9876 5432 1098 7654", "BB0022");
+        User user3("Jim", "Beam", "789 Pine St", "5555 4444 3333 2222", "CC0033");
+
+        REQUIRE(dbManager.AddUser(user1));
+        REQUIRE(dbManager.AddUser(user2));
+        REQUIRE(dbManager.AddUser(user3));
+
+        // Verify that users can be retrieved correctly
+        REQUIRE(dbManager.GetUser("AA0011").has_value());
+        REQUIRE(dbManager.GetUser("BB0022").has_value());
+        REQUIRE(dbManager.GetUser("CC0033").has_value());
+
+        // Remove a user
+        REQUIRE(dbManager.RemoveUser("BB0022"));
+        REQUIRE_FALSE(dbManager.GetUser("BB0022").has_value());
+
+        // Update user1's information and verify
+        User updatedUser1("John", "Doe", "321 New St", "1234 5678 9012 3456", "AA0011");
+        REQUIRE(dbManager.UpdateUser("AA0011", updatedUser1));
+
+        // Check if the updated information is correct
+        User fetchedUser1 = dbManager.GetUser("AA0011").value();
+        REQUIRE(updatedUser1.address == fetchedUser1.address);
+        REQUIRE(updatedUser1.creditCard == fetchedUser1.creditCard);
+        REQUIRE(updatedUser1.name == fetchedUser1.name);
+        REQUIRE(updatedUser1.surname == fetchedUser1.surname);
+        REQUIRE(updatedUser1.drivingLicense == fetchedUser1.drivingLicense);
+
+        // Verify that user3 exists before removing
+        REQUIRE(dbManager.GetUser("CC0033").has_value());
+
+        // Remove user3
+        REQUIRE(dbManager.RemoveUser("CC0033"));
+        REQUIRE_FALSE(dbManager.GetUser("CC0033").has_value());
+    }
 }
