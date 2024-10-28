@@ -24,4 +24,6 @@ public:
     UserManager& GetUserManager();
     CarManager& GetCarManager();
     BookingManager& GetBookingManager();
+
+    void NextDay();
 };

@@ -805,7 +805,7 @@ bool DatabaseManager::ManageEndOfRentals()
     const char* sql = R"(
 			SELECT id, car_id
 			FROM Trips
-			WHERE end_rental_date = date(?, '+1 day');
+			WHERE end_rental_date = date(?, '-1 day');
 		)";
 
     sqlite3_stmt* stmt;

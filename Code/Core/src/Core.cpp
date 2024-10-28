@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Core.h"
 
 Core::Core()
@@ -30,4 +31,16 @@ CarManager& Core::GetCarManager()
 BookingManager& Core::GetBookingManager()
 {
     return *bookingManager;
+}
+
+void Core::NextDay()
+{
+    if (databaseManager->NextDay())
+    {
+        std::cout << "Next day : " << databaseManager->GetCurrentDate() << std::endl;
+    }
+    else
+    {
+        throw std::runtime_error("Next day failed");
+    }
 }
