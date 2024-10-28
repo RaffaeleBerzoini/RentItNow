@@ -565,7 +565,7 @@ WHERE Cars.license_plate = 'ABC123';
     return mileage;
 }
 
-bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
+bool DatabaseManager::AddTrip(const int& user_id, const int& car_id, const Interfaces::Trip& trip)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -587,8 +587,8 @@ bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
     std::string startCircle = trip.startCircleToString();
     std::string destinationCircle = trip.destinationCircleToString();
 
-    sqlite3_bind_int(stmt, 1, trip.user_id);
-    sqlite3_bind_int(stmt, 2, trip.car_id);
+    sqlite3_bind_int(stmt, 1, user_id);
+    sqlite3_bind_int(stmt, 2, car_id);
     sqlite3_bind_text(stmt, 3, startCircle.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 4, destinationCircle.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, trip.distance);
@@ -606,6 +606,76 @@ bool DatabaseManager::AddTrip(const Interfaces::Trip& trip)
 
     sqlite3_close(db);
     return success;
+}
+
+/*
+struct TripInfo
+{
+    Car car;
+    User user;
+    Trip trip;
+};
+*/
+std::vector<Interfaces::TripInfo> DatabaseManager::GetUserTrips(const std::string& drivingLicense)
+{
+    std::lock_guard<std::mutex> lock(dbMutex);
+
+    sqlite3* db = OpenDB();
+
+    // Get car, user and trip information for a given driving license
+    const char* sql = R"(
+			SELECT Cars.car_type, Cars.license_plate, Cars.brand, Cars.name, Cars.status,
+				Users.name, Users.surname, Users.address, Users.credit_card, Users.driving_license,
+				Trips.start_circle, Trips.destination_circle, Trips.distance, Trips.cost, Trips.start_rental_date, Trips.end_rental_date
+			FROM Trips
+			JOIN Cars ON Trips.car_id = Cars.id
+			JOIN Users ON Trips.user_id = Users.id
+			WHERE Users.driving_license = ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare getUserTrips statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return std::vector<Interfaces::TripInfo>();
+    }
+
+    sqlite3_bind_text(stmt, 1, drivingLicense.c_str(), -1, SQLITE_STATIC);
+
+    std::vector<Interfaces::TripInfo> trips;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        std::string carType = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        std::string licensePlate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        std::string brand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+        std::string name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+        std::string status = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+
+		std::string userName = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+		std::string userSurname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+		std::string userAddress = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+		std::string creditCard = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
+		std::string userDrivingLicense = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
+
+		std::string startCircle = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10)));
+		std::string destinationCircle = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11)));
+		int distance = sqlite3_column_int(stmt, 12);
+		double cost = sqlite3_column_double(stmt, 13);
+		std::string startRentalDate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 14)));
+		std::string endRentalDate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 15)));
+
+        Interfaces::User user(userName, userSurname, userAddress, creditCard, userDrivingLicense);
+        Interfaces::Car car(carType, licensePlate, brand, name, status);
+        Interfaces::Trip trip(startCircle, destinationCircle, distance, cost, startRentalDate, endRentalDate);
+        Interfaces::TripInfo tripInfo = {car=car, user=user, trip=trip};
+        trips.push_back(tripInfo);		
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return trips;
 }
 
 bool DatabaseManager::AddService(const std::string& licensePlate)

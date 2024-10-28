@@ -463,8 +463,6 @@ TEST_CASE("Trip and Milage")
         REQUIRE(dbManager.AddUser(user1));
 
         Interfaces::Trip trip1(
-            1,
-            1,
             Interfaces::CircleType::INNER_CIRCLE,
             Interfaces::CircleType::OUTER_CIRCLE,
             15,
@@ -472,13 +470,11 @@ TEST_CASE("Trip and Milage")
             "2024-11-01",
             "2024-11-02");
 
-        REQUIRE(dbManager.AddTrip(trip1));
+        REQUIRE(dbManager.AddTrip(1, 1, trip1));
 
         REQUIRE(dbManager.GetCarMilage("ABC123") == 15);
 
         Interfaces::Trip trip2(
-            1,
-            1,
             Interfaces::CircleType::OUTER_CIRCLE,
             Interfaces::CircleType::MIDDLE_CIRCLE,
             10,
@@ -486,7 +482,7 @@ TEST_CASE("Trip and Milage")
             "2024-11-02",
             "2024-11-03");
 
-        REQUIRE(dbManager.AddTrip(trip2));
+        REQUIRE(dbManager.AddTrip(1, 1, trip2));
 
         REQUIRE(dbManager.GetCarMilage("ABC123") == 25);
     }

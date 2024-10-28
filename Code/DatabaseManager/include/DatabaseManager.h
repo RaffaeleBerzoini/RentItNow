@@ -36,7 +36,8 @@ public:
 
     DB_EXPORT int GetCarMilage(const std::string& licensePlate);
 
-    DB_EXPORT bool AddTrip(const Interfaces::Trip& trip);
+    DB_EXPORT bool AddTrip(const int& user_id, const int& car_id, const Interfaces::Trip& trip);
+    DB_EXPORT std::vector<Interfaces::TripInfo> GetUserTrips(const std::string& drivingLicense);
 
     DB_EXPORT std::string GetCurrentDate();
     DB_EXPORT std::string GetNextDate(int numDays);
