@@ -788,13 +788,76 @@ bool DatabaseManager::UpdateDatabase()
         return false;
     }
 
-    // If we are at service_date + 1 day, we need to update the status of the car to available
-    /// TODO
+    if (!CheckServiceCompleted())
+    {
+        return false;
+    }
 
     if (!CheckNeedOfService())
     {
         return false;
     }
+
+    return true;
+}
+
+bool DatabaseManager::CheckServiceCompleted()
+{
+    // If today is equal to service_date + 1 day and car is under service, we need to update 
+    // the status of the car to available
+    auto currentDate = GetCurrentDate(false);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT Cars.id, Cars.license_plate, Services.service_date
+			FROM Cars
+			JOIN Services ON Cars.id = Services.car_id
+			WHERE Services.service_date = date(?, '-1 day') AND Cars.status = 'under_service';
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare CheckServiceCompleted statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, currentDate.c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int carID = sqlite3_column_int(stmt, 0);
+        std::string licensePlate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+
+        const char* sql2 = R"(
+				UPDATE Cars
+				SET status = 'available'
+				WHERE id = ?;
+			)";
+
+        sqlite3_stmt* stmt2;
+        if (sqlite3_prepare_v2(db, sql2, -1, &stmt2, nullptr) != SQLITE_OK)
+        {
+            std::cerr << "Failed to prepare CheckServiceCompleted statement2: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return false;
+        }
+
+        sqlite3_bind_int(stmt2, 1, carID);
+
+        if (sqlite3_step(stmt2) != SQLITE_DONE)
+        {
+            std::cerr << "Failed to update car status: " << sqlite3_errmsg(db) << std::endl;
+            return false;
+        }
+
+        sqlite3_finalize(stmt2);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
     return true;
 }

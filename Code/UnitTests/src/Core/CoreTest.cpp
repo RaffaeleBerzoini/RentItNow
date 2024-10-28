@@ -152,5 +152,13 @@ TEST_CASE("Business Logic")
         REQUIRE(serviceData->service_date == "2025-05-31");
         REQUIRE(serviceData->distance_since_last_service == 0);
 
+        // Check car status and service after 1 day
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+        serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+        REQUIRE(serviceData.has_value());
+        REQUIRE(serviceData->service_date == "2025-05-31");
+        REQUIRE(serviceData->distance_since_last_service == 0);
+
     }
 }
