@@ -6,7 +6,6 @@ add_executable(RenItNow
     include/User.h
     src/User.cpp
     include/Server.h
-    include/CoutSilencer.h
 )
 
 target_include_directories(RenItNow PRIVATE include)
