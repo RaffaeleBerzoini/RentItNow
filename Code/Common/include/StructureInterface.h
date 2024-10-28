@@ -85,7 +85,7 @@ DELUXE: 50km/h
 
 struct CarSpecifics
 {
-    unsigned char seats{};
+    unsigned char seats{}; // driver is included
     unsigned char pricePerKm{};
     unsigned char speed{};
     CarType type;
