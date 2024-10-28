@@ -11,6 +11,7 @@ public:
     bool RemoveCar(const std::string& licensePlate);
     std::optional<Interfaces::Car> GetCar(const std::string& drivingLicense);
     std::vector<Interfaces::Car> GetAllCars();
+    std::optional<Interfaces::Service> GetService(const std::string& licensePlate);
 
     CarManager(std::shared_ptr<DatabaseManager> dbManagerPtr);
 };

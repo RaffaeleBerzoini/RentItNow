@@ -53,6 +53,11 @@ std::vector<Interfaces::Car> CarManager::GetAllCars()
     return dbManager->GetAllCars();
 }
 
+std::optional<Interfaces::Service> CarManager::GetService(const std::string& licensePlate)
+{
+    return dbManager->GetService(licensePlate);
+}
+
 CarManager::CarManager(std::shared_ptr<DatabaseManager> dbManagerPtr)
     : dbManager(dbManagerPtr)
 {}
