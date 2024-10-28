@@ -85,7 +85,7 @@ DELUXE: 50km/h
 
 struct CarSpecifics
 {
-    unsigned char seats{};
+    unsigned char seats{}; // driver is included
     unsigned char pricePerKm{};
     unsigned char speed{};
     CarType type;
@@ -249,8 +249,6 @@ struct Car
 
 struct Trip
 {
-    int user_id;
-    int car_id;
     CircleType start_circle;
     CircleType destination_circle;
     int distance;
@@ -269,17 +267,13 @@ struct Trip
     }
 
     Trip(
-        int user_id,
-        int car_id,
         CircleType start_circle,
         CircleType destination_circle,
         int distance,
         double cost,
         const std::string& start_rental_date,
         const std::string& end_rental_date)
-        : user_id(user_id)
-        , car_id(car_id)
-        , start_circle(start_circle)
+        : start_circle(start_circle)
         , destination_circle(destination_circle)
         , distance(distance)
         , cost(cost)
@@ -288,17 +282,13 @@ struct Trip
     {}
 
     Trip(
-        int user_id,
-        int car_id,
         const std::string& start_circle,
         const std::string& destination_circle,
         int distance,
         double cost,
         const std::string& start_rental_date,
         const std::string& end_rental_date)
-        : user_id(user_id)
-        , car_id(car_id)
-        , start_circle(stringToCircleType(start_circle))
+        : start_circle(stringToCircleType(start_circle))
         , destination_circle(stringToCircleType(destination_circle))
         , distance(distance)
         , cost(cost)
@@ -307,17 +297,13 @@ struct Trip
     {}
 
     Trip(
-        int user_id,
-        int car_id,
         const std::string& start_circle,
         CircleType destination_circle,
         int distance,
         double cost,
         const std::string& start_rental_date,
         const std::string& end_rental_date)
-        : user_id(user_id)
-        , car_id(car_id)
-        , start_circle(stringToCircleType(start_circle))
+        : start_circle(stringToCircleType(start_circle))
         , destination_circle(destination_circle)
         , distance(distance)
         , cost(cost)
@@ -326,17 +312,13 @@ struct Trip
     {}
 
     Trip(
-        int user_id,
-        int car_id,
         CircleType start_circle,
         const std::string& destination_circle,
         int distance,
         double cost,
         const std::string& start_rental_date,
         const std::string& end_rental_date)
-        : user_id(user_id)
-        , car_id(car_id)
-        , start_circle(start_circle)
+        : start_circle(start_circle)
         , destination_circle(stringToCircleType(destination_circle))
         , distance(distance)
         , cost(cost)
@@ -369,6 +351,24 @@ private:
             return CircleType::OUTER_CIRCLE;
         throw std::invalid_argument("Invalid circle type string");
     }
+};
+
+struct Service
+{
+    std::string service_date;
+    int distance_since_last_service;
+
+    Service(const std::string& service_date, int distance_since_last_service)
+        : service_date(service_date)
+        , distance_since_last_service(distance_since_last_service)
+    {}
+};
+
+struct TripInfo
+{
+    Car car;
+    User user;
+    Trip trip;
 };
 
 }
