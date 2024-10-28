@@ -788,15 +788,101 @@ bool DatabaseManager::UpdateDatabase()
         return false;
     }
 
-    // If we are at service_date + 1 day, we need to update the status of the car to available
+    // If we are at service_date + 1 day, we need to update the status of the car to available if not rented
     /// TODO
 
     // For all cars that have reached distance_since_last_service>=MAX_DISTANCE, we need to change service_date to today, distance_since_last_service
     // to 0
-    /// TODO
+    CheckNeedOfService();
     
     // For all cars that have service_date equal to today, we need to update the status of the car to under_service
     /// TODO
+
+    return true;
+}
+
+bool DatabaseManager::CheckNeedOfService()
+{
+    // If distance_since_last_service >= MAX_DISTANCE, we need to update service_date to today and
+    // distance_since_last_service to 0. Also we need to update the status of the car to under_service
+
+    auto currentDate = GetCurrentDate(false);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT Cars.id, Cars.license_plate, Services.distance_since_last_service
+			FROM Cars
+			JOIN Services ON Cars.id = Services.car_id
+			WHERE Services.distance_since_last_service >= ?;
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare CheckNeedOfService statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, MAX_DISTANCE);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int carID = sqlite3_column_int(stmt, 0);
+        std::string licensePlate = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+
+		const char* sql2 = R"(
+				UPDATE Services
+				SET service_date = ?, distance_since_last_service = 0
+				WHERE car_id = ?;
+			)";
+
+		sqlite3_stmt* stmt2;
+		if (sqlite3_prepare_v2(db, sql2, -1, &stmt2, nullptr) != SQLITE_OK)
+		{
+            std::cerr << "Failed to prepare CheckNeedOfService statement2: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return false;
+		}
+
+        sqlite3_bind_text(stmt2, 1, currentDate.c_str(), -1, SQLITE_STATIC);
+		sqlite3_bind_int(stmt2, 2, carID);
+
+		if (sqlite3_step(stmt2) != SQLITE_DONE)
+		{
+            std::cerr << "Failed to update service date and distance since last service: " << sqlite3_errmsg(db)
+                      << std::endl;
+		}
+
+		sqlite3_finalize(stmt2);
+
+		const char* sql3 = R"(
+				UPDATE Cars
+				SET status = 'under_service'
+				WHERE id = ?;
+			)";
+
+		sqlite3_stmt* stmt3;
+		if (sqlite3_prepare_v2(db, sql3, -1, &stmt3, nullptr) != SQLITE_OK)
+		{
+            std::cerr << "Failed to prepare CheckNeedOfService statement3: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return false;
+		}
+
+		sqlite3_bind_int(stmt3, 1, carID);
+
+		if (sqlite3_step(stmt3) != SQLITE_DONE)
+		{
+            std::cerr << "Failed to update car status: " << sqlite3_errmsg(db) << std::endl;
+		}
+
+		sqlite3_finalize(stmt3);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
     return true;
 }

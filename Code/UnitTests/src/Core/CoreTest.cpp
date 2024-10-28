@@ -109,5 +109,48 @@ TEST_CASE("Business Logic")
         REQUIRE(serviceData.has_value());
         REQUIRE(serviceData->service_date == "2024-11-01");
         REQUIRE(serviceData->distance_since_last_service == 5);
+
+        // Faster testing
+        endCircle = Interfaces::CircleType::OUTER_CIRCLE;
+        // Book multiple trips untile we almost reach the service limit (1495km)
+        for (int i = 0; i < 99; i++)
+        {
+            REQUIRE(
+                CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
+            CorePtr()->NextDay();
+            REQUIRE_FALSE(
+                CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
+            CorePtr()->NextDay();
+            serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+            REQUIRE(serviceData.has_value());
+            REQUIRE(serviceData->service_date == "2024-11-01");
+            REQUIRE(serviceData->distance_since_last_service == 20 + 15 * i);
+        }
+
+        // Now we are at 1490km, the car should be still available for booking
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+
+        // Book a trip that will reach the service limit
+        REQUIRE(CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 5));
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+
+
+        // Check car status and service after 6 days
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::UNDER_SERVICE);
+        serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+        REQUIRE(serviceData.has_value());
+        REQUIRE(serviceData->service_date == "2025-05-31");
+        REQUIRE(serviceData->distance_since_last_service == 0);
+
     }
 }
