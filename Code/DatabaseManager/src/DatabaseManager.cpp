@@ -798,10 +798,56 @@ bool DatabaseManager::UpdateDatabase()
 bool DatabaseManager::ManageEndOfRentals()
 {
     // If current_day is equal to end_rental_date + 1 day, we need to update the status of the car to available    
-    // sqlite3* db = OpenDB();
+    sqlite3* db = OpenDB();
+
+    auto currentDate = GetCurrentDate(false);
+
+    const char* sql = R"(
+			SELECT id, car_id
+			FROM Trips
+			WHERE end_rental_date = date(?, '+1 day');
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare ManageEndOfRentals statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, currentDate.c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int tripID = sqlite3_column_int(stmt, 0);
+        int carID = sqlite3_column_int(stmt, 1);
+
+        const char* sql2 = R"(
+				UPDATE Cars
+				SET status = 'available'
+				WHERE id = ?;
+			)";
+
+        sqlite3_stmt* stmt2;
+        if (sqlite3_prepare_v2(db, sql2, -1, &stmt2, nullptr) != SQLITE_OK)
+        {
+            std::cerr << "Failed to prepare ManageEndOfRentals statement2: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return false;
+        }
+
+        sqlite3_bind_int(stmt2, 1, carID);
+
+        if (sqlite3_step(stmt2) != SQLITE_DONE)
+        {
+            std::cerr << "Failed to update car status: " << sqlite3_errmsg(db) << std::endl;
+        }
+
+        sqlite3_finalize(stmt2);
+    }
 
     return true;
-
 }
 
 void DatabaseManager::CreateTables(sqlite3* db)
