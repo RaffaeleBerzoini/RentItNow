@@ -55,6 +55,7 @@ private:
 
     bool UpdateDatabase();
     bool ManageEndOfRentals();
+    bool UpdateDistanceSinceLastService();
 
     bool AddService(const std::string& licensePlate);
 };

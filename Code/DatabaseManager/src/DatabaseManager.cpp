@@ -777,10 +777,16 @@ std::string DatabaseManager::GetCurrentDate(bool lockDb)
 bool DatabaseManager::UpdateDatabase()
 {
 
-    ManageEndOfRentals();
+    if (!ManageEndOfRentals())
+    {
+        return false;
+    }
 
-    // For all cars that are at end_rental_date + 1, we need to update the distance_since_last_service
-    /// TODO
+    
+    if (!UpdateDistanceSinceLastService())
+    {
+        return false;
+    }
 
     // If we are at service_date + 1 day, we need to update the status of the car to available
     /// TODO
@@ -791,6 +797,68 @@ bool DatabaseManager::UpdateDatabase()
     
     // For all cars that have service_date equal to today, we need to update the status of the car to under_service
     /// TODO
+
+    return true;
+}
+
+bool DatabaseManager::UpdateDistanceSinceLastService()
+{
+    // If current_day is equal to end_rental_date + 1 day, we need to update the distance_since_last_service based on the trip distance
+    auto currentDate = GetCurrentDate(false);
+
+    sqlite3* db = OpenDB();
+
+    const char* sql = R"(
+			SELECT Trips.id, Trips.car_id, Trips.distance
+			FROM Trips
+			WHERE end_rental_date = date(?, '-1 day');
+		)";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare UpdateDistanceSinceLastService statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, currentDate.c_str(), -1, SQLITE_STATIC);
+
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int tripID = sqlite3_column_int(stmt, 0);
+        int carID = sqlite3_column_int(stmt, 1);
+        int distance = sqlite3_column_int(stmt, 2);
+
+        const char* sql2 = R"(
+				UPDATE Services
+				SET distance_since_last_service = distance_since_last_service + ?
+				WHERE car_id = ?;
+			)";
+
+        sqlite3_stmt* stmt2;
+        if (sqlite3_prepare_v2(db, sql2, -1, &stmt2, nullptr) != SQLITE_OK)
+        {
+            std::cerr << "Failed to prepare UpdateDistanceSinceLastService statement2: " << sqlite3_errmsg(db)
+                      << std::endl;
+            sqlite3_close(db);
+            return false;
+        }
+
+        sqlite3_bind_int(stmt2, 1, distance);
+        sqlite3_bind_int(stmt2, 2, carID);
+
+        if (sqlite3_step(stmt2) != SQLITE_DONE)
+        {
+            std::cerr << "Failed to update distance since last service: " << sqlite3_errmsg(db) << std::endl;
+        }
+
+        sqlite3_finalize(stmt2);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
     return true;
 }

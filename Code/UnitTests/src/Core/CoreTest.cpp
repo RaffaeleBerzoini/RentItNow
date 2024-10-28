@@ -21,6 +21,8 @@ TEST_CASE("Business Logic")
         std::filesystem::remove(testDBPath);
     }
 
+    std::optional<Interfaces::Service> serviceData;
+
     REQUIRE(!std::filesystem::exists(testDBPath));
 
     SECTION("Day2Day Logic")
@@ -36,6 +38,11 @@ TEST_CASE("Business Logic")
         // Add a car
         Interfaces::Car car1(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
         REQUIRE(CorePtr()->GetCarManager().AddCar(car1));
+        // Check service
+        serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+        REQUIRE(serviceData.has_value());
+        REQUIRE(serviceData->service_date == "2024-11-01");
+        REQUIRE(serviceData->distance_since_last_service == 0);
 
         // Book a trip
         Interfaces::CarType desiredCarType = Interfaces::CarType::DELUXE;
@@ -84,9 +91,23 @@ TEST_CASE("Business Logic")
         REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
         CorePtr()->NextDay();
         REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        // Check service
+        serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+        REQUIRE(serviceData.has_value());
+        REQUIRE(serviceData->service_date == "2024-11-01");
+        REQUIRE(serviceData->distance_since_last_service == 0);
+
+
+        // Becomes available after the trip ends
         CorePtr()->NextDay();
         REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
         CorePtr()->NextDay();
         REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+
+        // Check service
+        serviceData = CorePtr()->GetCarManager().GetService("ABC123");
+        REQUIRE(serviceData.has_value());
+        REQUIRE(serviceData->service_date == "2024-11-01");
+        REQUIRE(serviceData->distance_since_last_service == 5);
     }
 }
