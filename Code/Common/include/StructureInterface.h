@@ -85,9 +85,9 @@ DELUXE: 50km/h
 
 struct CarSpecifics
 {
-    unsigned char seats{}; // driver is included
-    unsigned char pricePerKm{};
-    unsigned char speed{};
+    unsigned short seats{}; // driver is included
+    unsigned short pricePerKm{};
+    unsigned short speed{};
     CarType type;
 
     CarSpecifics(CarType type)
@@ -111,22 +111,7 @@ struct CarSpecifics
             speed = 50;
             break;
         }
-    }
-
-    unsigned char getSeats() const
-    {
-        return seats;
-    }
-
-    unsigned char getPricePerKm() const
-    {
-        return pricePerKm;
-    }
-
-    unsigned char getSpeed() const
-    {
-        return speed;
-    }
+    }    
 };
 
 struct Car

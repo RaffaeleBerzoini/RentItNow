@@ -2,11 +2,10 @@
 #define USER_H
 
 #include "Interface.h"
-#include "CoutSilencer.h"
 #include <string>
 #include <iostream>
 
-class User : private CoutSilencer
+class User
 {
 private:
     Interfaces::User user;

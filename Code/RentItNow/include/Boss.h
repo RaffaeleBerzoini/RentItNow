@@ -1,10 +1,9 @@
 #ifndef BOSS_H
 #define BOSS_H
 
-#include "CoutSilencer.h"
 #include "Interface.h"
 
-class Boss : private CoutSilencer
+class Boss
 {
 private:
     Boss() = default;

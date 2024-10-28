@@ -1,64 +1,100 @@
 #include "Core.h"
 #include "Interface.h"
+#include "CoutSilencer.h"
 
 using namespace API;
+
+static CoutSilencer silencer;
 
 using CORE = Core* (*)();
 CORE CorePtr = Core::GetInstance;
 
 bool Common::AddUser(const Interfaces::User& user)
 {
-    return CorePtr()->GetUserManager().AddUser(user);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetUserManager().AddUser(user);
+    silencer.RestoreCout();
+    return result;
 }
 
 bool Common::UpdateUser(const std::string& driving_license, const Interfaces::User& user)
 {
-    return CorePtr()->GetUserManager().UpdateUser(driving_license, user);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetUserManager().UpdateUser(driving_license, user);
+    silencer.RestoreCout();
+    return result;
 }
 
 bool Common::RemoveUser(const std::string& drivingLicense)
 {
-    return CorePtr()->GetUserManager().RemoveUser(drivingLicense);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetUserManager().RemoveUser(drivingLicense);
+    silencer.RestoreCout();
+    return result;
 }
 
 std::optional<Interfaces::User> Common::GetUser(const std::string& drivingLicense)
 {
-    return CorePtr()->GetUserManager().GetUser(drivingLicense);
+    silencer.SilenceCout();
+    auto result = CorePtr()->GetUserManager().GetUser(drivingLicense);
+    silencer.RestoreCout();
+    return result;
 }
 
 std::vector<Interfaces::User> Boss::GetAllUsers()
 {
-    return CorePtr()->GetUserManager().GetAllUsers();
+    silencer.SilenceCout();
+    auto result = CorePtr()->GetUserManager().GetAllUsers();
+    silencer.RestoreCout();
+    return result;
 }
 
 bool Boss::AddCar(const Interfaces::Car& car)
 {
-    return CorePtr()->GetCarManager().AddCar(car);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetCarManager().AddCar(car);
+    silencer.RestoreCout();
+    return result;
 }
 
 bool Boss::UpdateCar(const std::string& licensePlate, const Interfaces::Car& car)
 {
-    return CorePtr()->GetCarManager().UpdateCar(licensePlate, car);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetCarManager().UpdateCar(licensePlate, car);
+    silencer.RestoreCout();
+    return result;
 }
 
 bool Boss::RemoveCar(const std::string& licensePlate)
 {
-    return CorePtr()->GetCarManager().RemoveCar(licensePlate);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetCarManager().RemoveCar(licensePlate);
+    silencer.RestoreCout();
+    return result;
 }
 
 std::optional<Interfaces::Car> Boss::GetCar(const std::string& licensePlate)
 {
-    return CorePtr()->GetCarManager().GetCar(licensePlate);
+    silencer.SilenceCout();
+    auto result = CorePtr()->GetCarManager().GetCar(licensePlate);
+    silencer.RestoreCout();
+    return result;
 }
 
 std::vector<Interfaces::Car> Boss::GetAllCars()
 {
-    return CorePtr()->GetCarManager().GetAllCars();
+    silencer.SilenceCout();
+    auto result = CorePtr()->GetCarManager().GetAllCars();
+    silencer.RestoreCout();
+    return result;
 }
 
 int API::Boss::GetCarMilage(const std::string& licensePlate)
 {
-    return CorePtr()->GetCarManager().GetCarMilage(licensePlate);
+    silencer.SilenceCout();
+    int result = CorePtr()->GetCarManager().GetCarMilage(licensePlate);
+    silencer.RestoreCout();
+    return result;
 }
 
 bool API::User::BookCar(
@@ -69,17 +105,25 @@ bool API::User::BookCar(
     const Interfaces::CircleType& endCircle,
     const int numOfDays)
 {
-    return CorePtr()->GetBookingManager().BookCar(user, carType, passengers, startCircle, endCircle, numOfDays);
+    silencer.SilenceCout();
+    bool result = CorePtr()->GetBookingManager().BookCar(user, carType, passengers, startCircle, endCircle, numOfDays);
+    silencer.RestoreCout();
+    return result;
 }
 
 std::vector<Interfaces::TripInfo> API::User::GetUserTrips(const std::string& drivingLicense)
 {
-    return CorePtr()->GetBookingManager().GetUserTrips(drivingLicense);
+    silencer.SilenceCout();
+    auto result = CorePtr()->GetBookingManager().GetUserTrips(drivingLicense);
+    silencer.RestoreCout();
+    return result;
 }
 
 void API::Server::NextDay()
 {
+    silencer.SilenceCout();
     CorePtr()->NextDay();
+    silencer.RestoreCout();
 }
 
 std::string API::Server::GetCurrentDate()

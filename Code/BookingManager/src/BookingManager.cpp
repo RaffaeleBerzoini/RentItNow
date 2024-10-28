@@ -67,7 +67,7 @@ int BookingManager::ComputeDistance(const Interfaces::CircleType& startCircle, c
 
 double BookingManager::ComputePrice(const Interfaces::CarSpecifics& carSpecifics, const int& distance)
 {
-    return carSpecifics.getPricePerKm() * distance;
+    return carSpecifics.pricePerKm * distance;
 }
 
 bool BookingManager::BookCar(

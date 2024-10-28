@@ -1,4 +1,5 @@
 #include "Boss.h"
+#include <iostream>
 
 Boss* Boss::GetInstance()
 {
@@ -110,8 +111,8 @@ void Boss::CheckAllCars()
         std::cout << car.carStatusToString() << std::endl;
         std::cout << "Type: " << car.carTypeToString() << std::endl;
         std::cout << "Seats: "<< car.carSpecifics.seats << std::endl;
-        std::cout << "PriceKm: "<< car.carSpecifics.pricePerKm << std::endl;
-        std::cout << "Speed: "<< car.carSpecifics.speed << std::endl;
+        std::cout << "PriceKm: " << car.carSpecifics.pricePerKm << std::endl;
+        std::cout << "Speed: " << car.carSpecifics.speed << std::endl;
         std::cout << "Mileage: " << API::Boss::GetCarMilage(car.licensePlate) << " Km" << std::endl;
     }
 }

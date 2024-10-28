@@ -1,11 +1,10 @@
 #include "Interface.h"
 #include <string>
-#include "CoutSilencer.h"
 
 using namespace API::Server;
 
 // singleton
-class Server : private CoutSilencer {
+class Server {
 private:
     Server() = default;
 
@@ -21,9 +20,7 @@ public:
 
     void NextDay()
     {
-        SilenceCout();
         API::Server::NextDay();
-        RestoreCout();
     }
 
     std::string GetCurrentDate()
