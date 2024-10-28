@@ -736,9 +736,13 @@ bool DatabaseManager::AddService(const std::string& licensePlate)
     
 }
 
-std::string DatabaseManager::GetCurrentDate()
+std::string DatabaseManager::GetCurrentDate(bool lockDb)
 {
-    std::lock_guard<std::mutex> lock(dbMutex);
+    if (lockDb)
+    {
+        std::lock_guard<std::mutex> lock(dbMutex);
+        return GetCurrentDate(false);
+    }
 
     sqlite3* db = OpenDB();
 
@@ -772,12 +776,8 @@ std::string DatabaseManager::GetCurrentDate()
 
 bool DatabaseManager::UpdateDatabase()
 {
-    // std::lock_guard<std::mutex> lock(dbMutex);
 
-    // sqlite3* db = OpenDB();
-
-    // If we are at end_rental_date + 1 day, we need to update the status of the car to available    
-    /// TODO
+    ManageEndOfRentals();
 
     // For all cars that are at end_rental_date + 1, we need to update the distance_since_last_service
     /// TODO
@@ -793,6 +793,15 @@ bool DatabaseManager::UpdateDatabase()
     /// TODO
 
     return true;
+}
+
+bool DatabaseManager::ManageEndOfRentals()
+{
+    // If current_day is equal to end_rental_date + 1 day, we need to update the status of the car to available    
+    // sqlite3* db = OpenDB();
+
+    return true;
+
 }
 
 void DatabaseManager::CreateTables(sqlite3* db)
