@@ -30,7 +30,7 @@ void ChangeDay()
 
 void PressEnterToContinue()
 {
-    std::cout << "Press Enter to continue...";
+    std::cout << "\n\nPress Enter to continue...";
     std::cin.get();
 }
 
@@ -226,6 +226,15 @@ int main()
         1);
 
 
+    PressEnterToContinue();
+
+    // Removing a user and a car
+    BossPtr()->RemoveUser("AB123CD");
+    BossPtr()->RemoveCar("AB123CD");
+    BossPtr()->CheckAllUsers();
+    BossPtr()->CheckAllCars();
+
+    PressEnterToContinue();
 
     return 0;
 }
