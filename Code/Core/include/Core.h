@@ -25,5 +25,7 @@ public:
     CarManager& GetCarManager();
     BookingManager& GetBookingManager();
 
+    // Utility functions from DatabaseManager. I do not want to expose the DatabaseManager to the API
     void NextDay();
+    std::string GetCurrentDate();
 };

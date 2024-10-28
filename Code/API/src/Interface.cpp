@@ -55,3 +55,29 @@ std::vector<Interfaces::Car> Boss::GetAllCars()
 {
     return CorePtr()->GetCarManager().GetAllCars();
 }
+
+bool API::User::BookCar(
+    const Interfaces::User& user,
+    const Interfaces::CarType& carType,
+    const unsigned char& passengers,
+    const Interfaces::CircleType& startCircle,
+    const Interfaces::CircleType& endCircle,
+    const int numOfDays)
+{
+    return CorePtr()->GetBookingManager().BookCar(user, carType, passengers, startCircle, endCircle, numOfDays);
+}
+
+std::vector<Interfaces::TripInfo> API::User::GetUserTrips(const std::string& drivingLicense)
+{
+    return CorePtr()->GetBookingManager().GetUserTrips(drivingLicense);
+}
+
+void API::Server::NextDay()
+{
+    CorePtr()->NextDay();
+}
+
+std::string API::Server::GetCurrentDate()
+{
+    return API_INTERFACE_EXPORT std::string();
+}

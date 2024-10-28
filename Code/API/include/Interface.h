@@ -28,7 +28,20 @@ namespace API
 
 	namespace User
     {
-	
+        API_INTERFACE_EXPORT bool BookCar(
+            const Interfaces::User& user,
+            const Interfaces::CarType& carType,
+            const unsigned char& passengers,
+            const Interfaces::CircleType& startCircle,
+            const Interfaces::CircleType& endCircle,
+            const int numOfDays);
+        API_INTERFACE_EXPORT std::vector<Interfaces::TripInfo> GetUserTrips(const std::string& drivingLicense);
 	}
+
+    namespace Server
+    {
+        API_INTERFACE_EXPORT void NextDay();
+        API_INTERFACE_EXPORT std::string GetCurrentDate();
+    }
 
 }
