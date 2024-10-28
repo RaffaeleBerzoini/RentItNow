@@ -99,14 +99,163 @@ bool BookingManager::BookCar(
     std::string startDate = dbManager->GetCurrentDate();
     std::string endDate = dbManager->GetNextDate(numOfDays);
 
-    Interfaces::Trip trip = {user_id, car_id, startCircle, endCircle, distance, cost, startDate, endDate};
+    Interfaces::Trip trip = {startCircle, endCircle, distance, cost, startDate, endDate};
 
-    dbManager->AddTrip(trip);
+    dbManager->AddTrip(user_id, car_id, trip);
 
     bestCar->status = Interfaces::CarStatus::RENTED;
     dbManager->UpdateCar(bestCar->licensePlate, *bestCar);
 
     return true;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(const std::string& drivingLicense)
+{
+    return dbManager->GetUserTrips(drivingLicense);
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CarType& carType)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.car.carSpecifics.type == carType)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CircleType& startCircle,
+    const Interfaces::CircleType& endCircle)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.trip.start_circle == startCircle && trip.trip.destination_circle == endCircle)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CarType& carType,
+    const Interfaces::CircleType& startCircle,
+    const Interfaces::CircleType& endCircle)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.car.carSpecifics.type == carType && trip.trip.start_circle == startCircle &&
+            trip.trip.destination_circle == endCircle)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const std::string& startRentalDate,
+    const std::string& endRentalDate)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.trip.start_rental_date == startRentalDate && trip.trip.end_rental_date == endRentalDate)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CarType& carType,
+    const std::string& startRentalDate,
+    const std::string& endRentalDate)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.car.carSpecifics.type == carType && trip.trip.start_rental_date == startRentalDate &&
+            trip.trip.end_rental_date == endRentalDate)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CircleType& startCircle,
+    const Interfaces::CircleType& endCircle,
+    const std::string& startRentalDate,
+    const std::string& endRentalDate)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.trip.start_circle == startCircle && trip.trip.destination_circle == endCircle &&
+            trip.trip.start_rental_date == startRentalDate && trip.trip.end_rental_date == endRentalDate)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
+}
+
+std::vector<Interfaces::TripInfo> BookingManager::GetUserTrips(
+    const std::string& drivingLicense,
+    const Interfaces::CarType& carType,
+    const Interfaces::CircleType& startCircle,
+    const Interfaces::CircleType& endCircle,
+    const std::string& startRentalDate,
+    const std::string& endRentalDate)
+{
+    auto allTrips = dbManager->GetUserTrips(drivingLicense);
+    std::vector<Interfaces::TripInfo> filteredTrips;
+
+    for (const auto& trip : allTrips)
+    {
+        if (trip.car.carSpecifics.type == carType && trip.trip.start_circle == startCircle &&
+            trip.trip.destination_circle == endCircle && trip.trip.start_rental_date == startRentalDate &&
+            trip.trip.end_rental_date == endRentalDate)
+        {
+            filteredTrips.push_back(trip);
+        }
+    }
+
+    return filteredTrips;
 }
 
 BookingManager::BookingManager(std::shared_ptr<DatabaseManager> dbManagerPtr)

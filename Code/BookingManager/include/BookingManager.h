@@ -23,7 +23,45 @@ public:
         const Interfaces::CircleType& endCircle,        
         const int numOfDays);
 
-    std::vector<Interfaces::Trip> GetBookedTrip(const std::string& drivingLicense);
+    // Methods to get all user trips, filtered by type, etc.
+    std::vector<Interfaces::TripInfo> GetUserTrips(const std::string& drivingLicense);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CarType& carType);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CircleType& startCircle,
+        const Interfaces::CircleType& endCircle);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CarType& carType,
+        const Interfaces::CircleType& startCircle,
+        const Interfaces::CircleType& endCircle);
+    // start and end rental date
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const std::string& startRentalDate,
+        const std::string& endRentalDate);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CarType& carType,
+        const std::string& startRentalDate,
+        const std::string& endRentalDate);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CircleType& startCircle,
+        const Interfaces::CircleType& endCircle,
+        const std::string& startRentalDate,
+        const std::string& endRentalDate);
+    std::vector<Interfaces::TripInfo> GetUserTrips(
+        const std::string& drivingLicense,
+        const Interfaces::CarType& carType,
+        const Interfaces::CircleType& startCircle,
+        const Interfaces::CircleType& endCircle,
+        const std::string& startRentalDate,
+        const std::string& endRentalDate);
+
+    
 
     BookingManager(std::shared_ptr<DatabaseManager> dbManagerPtr);
 };
