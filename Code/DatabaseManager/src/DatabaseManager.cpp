@@ -782,7 +782,6 @@ bool DatabaseManager::UpdateDatabase()
         return false;
     }
 
-    
     if (!UpdateDistanceSinceLastService())
     {
         return false;
