@@ -788,15 +788,13 @@ bool DatabaseManager::UpdateDatabase()
         return false;
     }
 
-    // If we are at service_date + 1 day, we need to update the status of the car to available if not rented
+    // If we are at service_date + 1 day, we need to update the status of the car to available
     /// TODO
 
-    // For all cars that have reached distance_since_last_service>=MAX_DISTANCE, we need to change service_date to today, distance_since_last_service
-    // to 0
-    CheckNeedOfService();
-    
-    // For all cars that have service_date equal to today, we need to update the status of the car to under_service
-    /// TODO
+    if (!CheckNeedOfService())
+    {
+        return false;
+    }
 
     return true;
 }
