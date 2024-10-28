@@ -56,6 +56,11 @@ std::vector<Interfaces::Car> Boss::GetAllCars()
     return CorePtr()->GetCarManager().GetAllCars();
 }
 
+int API::Boss::GetCarMilage(const std::string& licensePlate)
+{
+    return CorePtr()->GetCarManager().GetCarMilage(licensePlate);
+}
+
 bool API::User::BookCar(
     const Interfaces::User& user,
     const Interfaces::CarType& carType,

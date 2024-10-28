@@ -26,6 +26,7 @@ namespace API
         API_INTERFACE_EXPORT bool RemoveCar(const std::string& licensePlate);
         API_INTERFACE_EXPORT std::optional<Interfaces::Car> GetCar(const std::string& licensePlate);
         API_INTERFACE_EXPORT std::vector<Interfaces::Car> GetAllCars();
+        API_INTERFACE_EXPORT int GetCarMilage(const std::string& licensePlate);
 	}
 
 	namespace User
