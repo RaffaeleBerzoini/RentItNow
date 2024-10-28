@@ -26,7 +26,7 @@ std::optional<Interfaces::User> Common::GetUser(const std::string& drivingLicens
     return CorePtr()->GetUserManager().GetUser(drivingLicense);
 }
 
-std::vector<Interfaces::User> Common::GetAllUsers()
+std::vector<Interfaces::User> Boss::GetAllUsers()
 {
     return CorePtr()->GetUserManager().GetAllUsers();
 }
@@ -79,5 +79,5 @@ void API::Server::NextDay()
 
 std::string API::Server::GetCurrentDate()
 {
-    return API_INTERFACE_EXPORT std::string();
+    return CorePtr()->GetCurrentDate();
 }
