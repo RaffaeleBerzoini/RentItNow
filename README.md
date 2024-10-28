@@ -35,4 +35,3 @@ It builds the project in Debug and Release mode, and runs the unit tests. If the
 ## Unit Tests
 
 Unit tests are performed using Catch2. Not all the classes are tested, but the most important ones are.
-
