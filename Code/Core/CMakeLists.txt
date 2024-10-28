@@ -12,6 +12,7 @@ target_link_libraries (Core PUBLIC
     UserManager
     CarManager
     DatabaseManager
+    BookingManager
 )
 
 

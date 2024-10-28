@@ -798,9 +798,9 @@ bool DatabaseManager::UpdateDatabase()
 bool DatabaseManager::ManageEndOfRentals()
 {
     // If current_day is equal to end_rental_date + 1 day, we need to update the status of the car to available    
-    sqlite3* db = OpenDB();
-
     auto currentDate = GetCurrentDate(false);
+
+    sqlite3* db = OpenDB();
 
     const char* sql = R"(
 			SELECT id, car_id
@@ -846,6 +846,9 @@ bool DatabaseManager::ManageEndOfRentals()
 
         sqlite3_finalize(stmt2);
     }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
     return true;
 }

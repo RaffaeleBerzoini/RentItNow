@@ -1,15 +1,11 @@
 #include "Core.h"
 
-namespace
-{
-std::string DATABASE_PATH = "database/database.db";
-}
-
 Core::Core()
 {
     databaseManager = std::make_shared<DatabaseManager>(DATABASE_PATH);
     userManager = std::make_unique<UserManager>(UserManager(databaseManager));
     carManager = std::make_unique<CarManager>(CarManager(databaseManager));
+    bookingManager = std::make_unique<BookingManager>(BookingManager(databaseManager));    
 }
 
 Core* Core::GetInstance()
@@ -29,4 +25,9 @@ UserManager& Core::GetUserManager()
 CarManager& Core::GetCarManager()
 {
     return *carManager;
+}
+
+BookingManager& Core::GetBookingManager()
+{
+    return *bookingManager;
 }
