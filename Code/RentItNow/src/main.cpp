@@ -1,83 +1,240 @@
 #include <iostream>
 #include "StructureInterface.h"
-#include "Interface.h"
+#include "Server.h"
+#include "Boss.h"
+#include "User.h"
+#include <filesystem>
+#include "CoutSilencer.h"
+
+using SERVER = Server* (*)();
+SERVER ServerPtr = Server::GetInstance;
+
+using BOSS = Boss* (*)();
+BOSS BossPtr = Boss::GetInstance;
+
+void RemoveDB()
+{
+    const std::string testDBPath = "database/database.db";
+    if (std::filesystem::exists(testDBPath))
+    {
+        std::filesystem::remove(testDBPath);
+    }
+}
+
+void ChangeDay()
+{
+    std::cout << "-----CHANGE DAY-----\n";
+    ServerPtr()->NextDay();
+    std::cout << "Current date: " << ServerPtr()->GetCurrentDate() << std::endl;
+}
+
+void PressEnterToContinue()
+{
+    std::cout << "\n\nPress Enter to continue...";
+    std::cin.get();
+}
+
 
 int main()
 {
-    // TODO: threads/classes for boss and user consoles
+    // Remove DB only for demo to show for example unregistered user actions
+    RemoveDB();
 
-    // Boss logic users
-    Interfaces::User user("Raffa", "Berzo", "123 Main St", "1234 5678 9012 3456", "AA0011");
-    API::Common::AddUser(user);
+    std::cout << "Current date: " << ServerPtr()->GetCurrentDate() << std::endl;
+    PressEnterToContinue();
 
-    user.address = "456 Main St";
-    API::Common::AddUser(user);
+    // Land Rover Defender
+    BossPtr()->RegisterCar(Interfaces::Car(
+        Interfaces::CarType::DELUXE, "EF213FG", "Land Rover", "Defender", Interfaces::CarStatus::AVAILABLE));
 
-    Interfaces::User user2("Mary", "Jane", "789 Main St", "1234 5678 9999 3456", "AA0012");
-    API::Common::AddUser(user2);
+    // Toyota Corolla
+    BossPtr()->RegisterCar(Interfaces::Car(
+        Interfaces::CarType::MID_CLASS, "AB123CD", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE));
 
-    auto users = API::Common::GetAllUsers();
+    // FIAT TOPOLINO
+    BossPtr()->RegisterCar(
+        Interfaces::Car(Interfaces::CarType::ECO, "XY123ZZ", "FIAT", "TOPOLINO", Interfaces::CarStatus::AVAILABLE));
 
-    for (const auto& user : users)
+    PressEnterToContinue();
+
+    User RaffaeleBerzoini("AB123CD", "Raffaele", "Berzoini", "Via Viale 20", "1234 5678 9012 3456");
+    RaffaeleBerzoini.RegisterToRentalService();
+
+    User MarioRossi("EF213FG", "Mario", "Rossi", "Via Roma 10", "9623 4567 8901 2345");
+
+    PressEnterToContinue();
+
+    // Actions as unregistered user
+    MarioRossi.VisualizeTrips();
+    MarioRossi.BookCar(
+        Interfaces::CarType::DELUXE, 4, Interfaces::CircleType::INNER_CIRCLE, Interfaces::CircleType::OUTER_CIRCLE, 3);
+
+    PressEnterToContinue();
+
+    // Actions as registered user
+    MarioRossi.RegisterToRentalService();
+    MarioRossi.BookCar(
+        Interfaces::CarType::DELUXE, 4, Interfaces::CircleType::INNER_CIRCLE, Interfaces::CircleType::OUTER_CIRCLE, 3);
+    MarioRossi.VisualizeTrips();
+
+    PressEnterToContinue();
+
+    // Trying to book the same car
+    RaffaeleBerzoini.BookCar(
+        Interfaces::CarType::DELUXE, 4, Interfaces::CircleType::INNER_CIRCLE, Interfaces::CircleType::OUTER_CIRCLE, 7);
+
+    PressEnterToContinue();
+
+    BossPtr()->CheckAllUsers();
+    BossPtr()->CheckAllCars();
+
+    PressEnterToContinue();
+
+    // Raffaele Berzoini waits for the deluxe car to be available
+    for (int i = 0; i < 4; i++)
     {
-        std::cout << user.name << " " << user.surname << " " << user.address << " " << user.drivingLicense << " "
-                  << user.creditCard << std::endl;
+        ChangeDay();
+        BossPtr()->CheckCar("EF213FG");
     }
 
-    // Modify user
-    user.creditCard = "6543 2109 8765 4321";
-    API::Common::UpdateUser("AA0011", user);
+    PressEnterToContinue();
 
-    // Remove user
-    API::Common::RemoveUser("AA0012");
+    // Raffaele Berzoini books the car
+    RaffaeleBerzoini.BookCar(
+        Interfaces::CarType::DELUXE, 4, Interfaces::CircleType::INNER_CIRCLE, Interfaces::CircleType::MIDDLE_CIRCLE, 7);
 
-    users = API::Common::GetAllUsers();
+    PressEnterToContinue();
 
-    for (const auto& user : users)
+    ChangeDay();
+    // Boss rent the toyota for himself
+    BossPtr()->ChangeCarAvailability("AB123CD", Interfaces::CarStatus::RENTED);
+
+    PressEnterToContinue();
+
+    // Mario Rossi change his address
+    MarioRossi.UpdateAddress("Via Milano 30");
+    BossPtr()->CheckAllUsers();
+
+    PressEnterToContinue();
+
+    // Mario Rossi tries to book the toyota
+    MarioRossi.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        4,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        7);
+
+    ChangeDay();
+
+    PressEnterToContinue();
+
+    // Boss return the toyota
+    BossPtr()->ChangeCarAvailability("AB123CD", Interfaces::CarStatus::AVAILABLE);
+
+    PressEnterToContinue();
+
+    // Mario Rossi books the toyota with too many passengers
+    MarioRossi.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        5,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        1);
+
+    PressEnterToContinue();
+
+    // Mario Rossi books the toyota
+    MarioRossi.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        4,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        1);
+
+    PressEnterToContinue();
+
+    // Let's cycle days until we need service for the toyota (>= 1500 km)
+
+    ChangeDay();
+    // Car returns available
+    ChangeDay();
+
+    // Check current car mileage (15km)
+    BossPtr()->CheckCar("AB123CD");
+
+    // Let's cycle days until we need service for the toyota (>= 1500 km)
+    for (int i = 0; i < 98; i++)
     {
-        std::cout << user.name << " " << user.surname << " " << user.address << " " << user.drivingLicense << " "
-                  << user.creditCard << std::endl;
+        CoutSilencer silencer;
+        silencer.SilenceCout();
+        RaffaeleBerzoini.BookCar(
+            Interfaces::CarType::MID_CLASS,
+            4,
+            Interfaces::CircleType::INNER_CIRCLE,
+            Interfaces::CircleType::OUTER_CIRCLE,
+            0);
+        ChangeDay();
+        silencer.RestoreCout();
     }
 
-    // Boss logic cars
-    Interfaces::Car car(Interfaces::CarType::ECO, "ABC123", "Toyota", "Corolla", Interfaces::CarStatus::AVAILABLE);
-    API::Boss::AddCar(car);
+    // Check current car mileage (1485)
+    BossPtr()->CheckCar("AB123CD");
 
-    car.licensePlate = "DEF456";
-    car.brand = "Ford";
-    car.name = "Focus";
-    car.carSpecifics.type = Interfaces::CarType::DELUXE;
-    API::Boss::AddCar(car);
+    PressEnterToContinue();
 
-    car.licensePlate = "GHI789";
-    car.brand = "Chevrolet";
-    car.name = "Cruze";
-    car.carSpecifics.type = Interfaces::CarType::MID_CLASS;
-    API::Boss::AddCar(car);
+    // Another booking for the toyota
+    MarioRossi.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        4,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        0);
 
-    auto cars = API::Boss::GetAllCars();
+    BossPtr()->CheckCar("AB123CD");
 
-    for (const auto& car : cars)
-    {
-        std::cout << car.licensePlate << " " << car.brand << " " << car.name << " " << car.carTypeToString()
-                  << " " << car.carStatusToString() << std::endl;
-    }
+    PressEnterToContinue();
 
-    // Modify car
-    car.carSpecifics.type = Interfaces::CarType::ECO;
-    car.status = Interfaces::CarStatus::RENTED;
-    API::Boss ::UpdateCar("GHI789", car);
+    ChangeDay();
 
-    // Remove car
-    API::Boss ::RemoveCar("DEF456");
+    // Check current car mileage (1500)
+    BossPtr()->CheckCar("AB123CD");
 
-    cars = API::Boss::GetAllCars();
+    // Car Under Service
+    RaffaeleBerzoini.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        4,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        1);
 
-    for (const auto& car : cars)
-    {
-        std::cout << car.licensePlate << " " << car.brand << " " << car.name << " " << car.carTypeToString() << " "
-                  << car.carStatusToString() << std::endl;
-    }
+    PressEnterToContinue();
+
+    ChangeDay();
+
+    // Check current car status
+    BossPtr()->CheckCar("AB123CD");
+
+    PressEnterToContinue();
+
+    // Car available again
+    RaffaeleBerzoini.BookCar(
+        Interfaces::CarType::MID_CLASS,
+        4,
+        Interfaces::CircleType::INNER_CIRCLE,
+        Interfaces::CircleType::OUTER_CIRCLE,
+        1);
+
+
+    PressEnterToContinue();
+
+    // Removing a user and a car
+    BossPtr()->RemoveUser("AB123CD");
+    BossPtr()->RemoveCar("AB123CD");
+    BossPtr()->CheckAllUsers();
+    BossPtr()->CheckAllCars();
+
+    PressEnterToContinue();
 
     return 0;
 }

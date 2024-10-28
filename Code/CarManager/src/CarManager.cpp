@@ -58,6 +58,12 @@ std::optional<Interfaces::Service> CarManager::GetService(const std::string& lic
     return dbManager->GetService(licensePlate);
 }
 
+int CarManager::GetCarMilage(const std::string& licensePlate)
+{
+    return dbManager->GetCarMilage(licensePlate);
+}
+
+
 CarManager::CarManager(std::shared_ptr<DatabaseManager> dbManagerPtr)
     : dbManager(dbManagerPtr)
 {}

@@ -147,6 +147,8 @@ TEST_CASE("Business Logic")
         // Check car status and service after 6 days
         CorePtr()->NextDay();
         REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::UNDER_SERVICE);
+        REQUIRE_FALSE(
+            CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
         serviceData = CorePtr()->GetCarManager().GetService("ABC123");
         REQUIRE(serviceData.has_value());
         REQUIRE(serviceData->service_date == "2025-05-31");
@@ -160,5 +162,59 @@ TEST_CASE("Business Logic")
         REQUIRE(serviceData->service_date == "2025-05-31");
         REQUIRE(serviceData->distance_since_last_service == 0);
 
+        // Book another trip
+        REQUIRE(CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 2));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+
+        // Boss set the car to rented remains rented until it is manually set to available
+        car1.status = Interfaces::CarStatus::RENTED;
+        REQUIRE(CorePtr()->GetCarManager().UpdateCar("ABC123", car1));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        // Unable to book the car
+        REQUIRE_FALSE(
+            CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
+        
+        // Next day
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+
+        // Make the car available
+        car1.status = Interfaces::CarStatus::AVAILABLE;
+        REQUIRE(CorePtr()->GetCarManager().UpdateCar("ABC123", car1));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+
+        // Now we can book the car
+        REQUIRE(CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+
+        // Check the car is still rented after some days
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::RENTED);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
+
+        // After a day the boss decide to service the car
+        CorePtr()->NextDay();
+        car1.status = Interfaces::CarStatus::UNDER_SERVICE;
+        REQUIRE(CorePtr()->GetCarManager().UpdateCar("ABC123", car1));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::UNDER_SERVICE);
+        REQUIRE_FALSE(
+            CorePtr()->GetBookingManager().BookCar(user, desiredCarType, passengers, startCircle, endCircle, 1));
+
+        // The car remains under service until the boss manually set it to available
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::UNDER_SERVICE);
+        CorePtr()->NextDay();
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::UNDER_SERVICE);
+        CorePtr()->NextDay();
+        car1.status = Interfaces::CarStatus::AVAILABLE;
+        REQUIRE(CorePtr()->GetCarManager().UpdateCar("ABC123", car1));
+        REQUIRE(CorePtr()->GetCarManager().GetCar("ABC123")->status == Interfaces::CarStatus::AVAILABLE);
     }
 }

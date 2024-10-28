@@ -44,3 +44,8 @@ void Core::NextDay()
         throw std::runtime_error("Next day failed");
     }
 }
+
+std::string Core::GetCurrentDate()
+{
+    return databaseManager->GetCurrentDate();
+}

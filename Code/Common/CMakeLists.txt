@@ -1,6 +1,7 @@
 add_library (Common STATIC
 	include/StructureInterface.h
-	src/neededForLib.cpp
+	include/CoutSilencer.h
+	src/CoutSilencer.cpp
 	)
 
 target_include_directories (Common PUBLIC
